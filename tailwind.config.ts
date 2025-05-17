@@ -59,7 +59,13 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+        // Added for RecallRating component custom colors if needed beyond direct Tailwind palette
+        amber: {
+          '400': '#fbbf24', // Example, ensure these match desired shades
+          '500': '#f59e0b',
+          '900': '#78350f',
+        }
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
