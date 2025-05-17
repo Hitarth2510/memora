@@ -8,7 +8,7 @@ import { FlashcardDisplay } from '@/components/FlashcardDisplay';
 import { useFlashcards } from '@/hooks/useFlashcards';
 import { useReviewStreak } from '@/hooks/useReviewStreak'; // Import the streak hook
 import type { Flashcard, DeckInfo } from '@/lib/types';
-import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info, RotateCcw } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -117,7 +117,7 @@ export default function ReviewPage() {
     }
     return (
       <div className="max-w-md mx-auto space-y-6 py-8">
-        <Card className="shadow-xl bg-card/80 backdrop-blur-lg">
+        <Card className="shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold flex items-center justify-center">
               <Library className="mr-3 h-8 w-8 text-primary" />
@@ -226,7 +226,7 @@ export default function ReviewPage() {
             onFlip={handleFlip}
           />
 
-          {isFlipped ? (
+          {isFlipped && (
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-6 w-full">
               <Button
                 onClick={() => handleAnswer(false)}
@@ -243,12 +243,6 @@ export default function ReviewPage() {
                 <ThumbsUp className="mr-2 h-5 w-5" /> I Knew It!
               </Button>
             </div>
-          ) : (
-            <div className="mt-6 w-full">
-                 <Button variant="outline" onClick={handleFlip} className="w-full text-base py-5">
-                    <RotateCcw className="mr-2 h-4 w-4" /> Flip Card
-                </Button>
-            </div>
           )}
         </>
       ) : (
@@ -260,3 +254,4 @@ export default function ReviewPage() {
     </div>
   );
 }
+

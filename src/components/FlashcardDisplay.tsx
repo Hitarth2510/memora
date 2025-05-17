@@ -31,7 +31,7 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
     <div className="w-full max-w-xl mx-auto perspective group"> {/* Added group for group-hover */}
       <Card 
         className={cn(
-          "h-96 md:h-112 flex flex-col items-center justify-center p-2 text-center cursor-pointer shadow-xl transition-all duration-700 preserve-3d relative",
+          "h-96 md:h-112 flex flex-col items-center justify-center p-2 text-center cursor-pointer shadow-xl transition-all duration-500 preserve-3d relative", // Reduced duration to 500ms
           "prose dark:prose-invert prose-sm md:prose-base max-w-none", 
           "hover:shadow-primary/30 hover:shadow-2xl", // Glowing effect on hover
           "group-hover:[transform:rotateY(var(--tw-rotate-y))_rotateX(var(--tw-rotate-x))_scale(1.05)]", // 3D tilt, adjusted for existing flip
@@ -51,8 +51,8 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
           const rect = card.getBoundingClientRect();
           const x = e.clientX - rect.left - rect.width / 2;
           const y = e.clientY - rect.top - rect.height / 2;
-          const rotateX = (-y / rect.height) * 10; // Max rotation 5deg
-          const rotateY = (x / rect.width) * 10;  // Max rotation 5deg
+          const rotateX = (-y / rect.height) * 10; // Max rotation 10deg
+          const rotateY = (x / rect.width) * 10;  // Max rotation 10deg
           card.style.setProperty('--tw-rotate-x', `${rotateX}deg`);
           card.style.setProperty('--tw-rotate-y', `${rotateY}deg`);
         }}
@@ -86,7 +86,7 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
         </div>
 
         {/* Back of the Card */}
-        <div className="absolute inset-0 rotate-y-180 backface-hidden bg-card flex flex-col">
+        <div className="absolute inset-0 rotate-y-180 backface-hidden bg-card flex flex-col"> {/* Ensure bg-card for back as well */}
           <CardContent className="flex flex-col items-center justify-center h-full p-4 space-y-3">
             <p className="text-xs text-muted-foreground mb-1 self-start">Back</p>
              {flashcard.backImageUrl && isValidHttpUrl(flashcard.backImageUrl) && (
@@ -107,7 +107,7 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
           </CardContent>
         </div>
       </Card>
-      <div className="mt-4 flex justify-center">
+      <div className="mt-4 flex justify-center"> {/* This is the single flip button now */}
         <Button variant="outline" onClick={onFlip}>
           <RotateCcw className="mr-2 h-4 w-4" /> Flip Card
         </Button>
@@ -160,3 +160,4 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
     </div>
   );
 }
+

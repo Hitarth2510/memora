@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -45,13 +46,11 @@
     --background: 0 0% 3.9%; /* Solid dark background */
     --foreground: 0 0% 98%;
 
-    /* Dark theme card with transparency for glassmorphism */
-    /* Using HSL with alpha: hsla(hue, saturation, lightness, alpha) */
-    /* A very dark, slightly desaturated blue-grey base, semi-transparent */
-    --card: 220 10% 12% / 0.65; /* Example: hsla(220, 10%, 12%, 0.65) */
+    /* Dark theme card - solid dark color */
+    --card: 220 10% 10%; /* Solid Dark Blue-Grey, slightly darker */
     --card-foreground: 0 0% 98%;
     
-    --popover: 220 10% 12% / 0.85; /* Popovers can be a bit more opaque */
+    --popover: 220 10% 12%; /* Popovers can be a bit more opaque */
     --popover-foreground: 0 0% 98%;
     
     --primary: 207 87% 68%; /* Calm Blue #64B5F6 */
@@ -69,7 +68,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 0 0% 25%; /* Slightly lighter border for dark mode glass cards */
+    --border: 0 0% 25%; /* Slightly lighter border for dark mode cards */
     --input: 0 0% 14.9%;
     --ring: 207 87% 68%; /* Match primary for focus rings */
     
@@ -89,3 +88,4 @@
     @apply bg-background text-foreground;
   }
 }
+
