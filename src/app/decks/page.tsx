@@ -42,57 +42,58 @@ export default function PreloadedDecksPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <Card className="shadow-xl bg-card text-card-foreground">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold flex items-center">
-            <LibraryBig className="mr-3 h-8 w-8 text-primary" />
-            Preloaded Flashcard Decks
-          </CardTitle>
-          <CardDescription>
-            Browse available decks and add them to your study collection.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {preloadedDecks.length === 0 && (
-        <Card className="bg-card text-card-foreground">
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground text-center">
-              No preloaded decks are available at the moment.
-              <Link href="/create" className="text-primary hover:underline ml-1">Create your own cards!</Link>
-            </p>
-          </CardContent>
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-8">
+        <Card className="shadow-xl bg-card text-card-foreground">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold flex items-center">
+              <LibraryBig className="mr-3 h-8 w-8 text-primary" />
+              Preloaded Flashcard Decks
+            </CardTitle>
+            <CardDescription>
+              Browse available decks and add them to your study collection.
+            </CardDescription>
+          </CardHeader>
         </Card>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {preloadedDecks.map((deck) => (
-          <Card key={deck.id} className="flex flex-col bg-card text-card-foreground">
-            <CardHeader>
-              <CardTitle>{deck.name}</CardTitle>
-              <CardDescription>{deck.description}</CardDescription>
-              <span className="text-xs text-muted-foreground pt-1">Category: {deck.category} | Cards: {deck.cards.length}</span>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-sm text-muted-foreground">Example cards:</p>
-              <ul className="list-disc list-inside text-sm space-y-1 mt-1 max-h-24 overflow-y-auto">
-                {deck.cards.slice(0, 3).map((card, index) => (
-                  <li key={index} className="truncate">{card.front}</li>
-                ))}
-                {deck.cards.length > 3 && <li className="text-xs">...and more</li>}
-              </ul>
+        {preloadedDecks.length === 0 && (
+          <Card className="bg-card text-card-foreground">
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground text-center">
+                No preloaded decks are available at the moment.
+                <Link href="/create" className="text-primary hover:underline ml-1">Create your own cards!</Link>
+              </p>
             </CardContent>
-            <CardFooter>
-              <Button onClick={() => handleAddDeck(deck)} className="w-full">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Deck to My Collection
-              </Button>
-            </CardFooter>
           </Card>
-        ))}
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {preloadedDecks.map((deck) => (
+            <Card key={deck.id} className="flex flex-col bg-card text-card-foreground">
+              <CardHeader>
+                <CardTitle>{deck.name}</CardTitle>
+                <CardDescription>{deck.description}</CardDescription>
+                <span className="text-xs text-muted-foreground pt-1">Category: {deck.category} | Cards: {deck.cards.length}</span>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-sm text-muted-foreground">Example cards:</p>
+                <ul className="list-disc list-inside text-sm space-y-1 mt-1 max-h-24 overflow-y-auto">
+                  {deck.cards.slice(0, 3).map((card, index) => (
+                    <li key={index} className="truncate">{card.front}</li>
+                  ))}
+                  {deck.cards.length > 3 && <li className="text-xs">...and more</li>}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={() => handleAddDeck(deck)} className="w-full">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Deck to My Collection
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-
     

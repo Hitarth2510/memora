@@ -63,93 +63,94 @@ export default function CreateFlashcardPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card className="shadow-xl bg-card text-card-foreground">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold flex items-center">
-            <PlusCircle className="mr-3 h-8 w-8 text-primary" />
-            Create a New Flashcard
-          </CardTitle>
-          <CardDescription>
-            Fill in the front and back. Markdown is supported for text. You can also add image URLs.
-            Cards created here will be added to your "{DEFAULT_DECK_NAME}" deck.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="front" className="text-lg font-medium">Front (Supports Markdown)</Label>
-              <Textarea
-                id="front"
-                value={front}
-                onChange={(e) => setFront(e.target.value)}
-                placeholder="e.g., What is the capital of **France**? Or `code` snippets."
-                className="min-h-[100px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
-                required
-              />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="frontImageUrl" className="text-lg font-medium flex items-center">
-                <ImageIcon className="mr-2 h-5 w-5 text-muted-foreground" /> Front Image URL (Optional)
-              </Label>
-              <Input
-                id="frontImageUrl"
-                type="url"
-                value={frontImageUrl}
-                onChange={(e) => setFrontImageUrl(e.target.value)}
-                placeholder="https://example.com/image.png"
-                className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
-              />
-              {frontImageUrl && isValidHttpUrl(frontImageUrl) && (
-                <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
-                  <Image src={frontImageUrl} alt="Front image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content" />
-                </div>
-              )}
-            </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
+        <Card className="shadow-xl bg-card text-card-foreground">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold flex items-center">
+              <PlusCircle className="mr-3 h-8 w-8 text-primary" />
+              Create a New Flashcard
+            </CardTitle>
+            <CardDescription>
+              Fill in the front and back. Markdown is supported for text. You can also add image URLs.
+              Cards created here will be added to your "{DEFAULT_DECK_NAME}" deck.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="front" className="text-lg font-medium">Front (Supports Markdown)</Label>
+                <Textarea
+                  id="front"
+                  value={front}
+                  onChange={(e) => setFront(e.target.value)}
+                  placeholder="e.g., What is the capital of **France**? Or `code` snippets."
+                  className="min-h-[100px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="frontImageUrl" className="text-lg font-medium flex items-center">
+                  <ImageIcon className="mr-2 h-5 w-5 text-muted-foreground" /> Front Image URL (Optional)
+                </Label>
+                <Input
+                  id="frontImageUrl"
+                  type="url"
+                  value={frontImageUrl}
+                  onChange={(e) => setFrontImageUrl(e.target.value)}
+                  placeholder="https://example.com/image.png"
+                  className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
+                />
+                {frontImageUrl && isValidHttpUrl(frontImageUrl) && (
+                  <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
+                    <Image src={frontImageUrl} alt="Front image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content" />
+                  </div>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="back" className="text-lg font-medium">Back (Supports Markdown)</Label>
-              <Textarea
-                id="back"
-                value={back}
-                onChange={(e) => setBack(e.target.value)}
-                placeholder="e.g., Paris. You can include *italic* or **bold** text."
-                className="min-h-[100px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="backImageUrl" className="text-lg font-medium flex items-center">
-                <ImageIcon className="mr-2 h-5 w-5 text-muted-foreground" /> Back Image URL (Optional)
-              </Label>
-              <Input
-                id="backImageUrl"
-                type="url"
-                value={backImageUrl}
-                onChange={(e) => setBackImageUrl(e.target.value)}
-                placeholder="https://example.com/another-image.jpg"
-                className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
-              />
-              {backImageUrl && isValidHttpUrl(backImageUrl) && (
-                 <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
-                  <Image src={backImageUrl} alt="Back image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content"/>
-                </div>
-              )}
-            </div>
-            <Alert variant="default" className="mt-4 bg-card text-card-foreground border-border">
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                For Markdown, use standard syntax like `**bold**`, `*italic*`, `[link](url)`, ` ```code block``` ` etc.
-              </AlertDescription>
-            </Alert>
-            <Button type="submit" className="w-full text-lg py-6">
-              <PlusCircle className="mr-2 h-5 w-5" /> Add Flashcard
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="back" className="text-lg font-medium">Back (Supports Markdown)</Label>
+                <Textarea
+                  id="back"
+                  value={back}
+                  onChange={(e) => setBack(e.target.value)}
+                  placeholder="e.g., Paris. You can include *italic* or **bold** text."
+                  className="min-h-[100px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="backImageUrl" className="text-lg font-medium flex items-center">
+                  <ImageIcon className="mr-2 h-5 w-5 text-muted-foreground" /> Back Image URL (Optional)
+                </Label>
+                <Input
+                  id="backImageUrl"
+                  type="url"
+                  value={backImageUrl}
+                  onChange={(e) => setBackImageUrl(e.target.value)}
+                  placeholder="https://example.com/another-image.jpg"
+                  className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
+                />
+                {backImageUrl && isValidHttpUrl(backImageUrl) && (
+                  <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
+                    <Image src={backImageUrl} alt="Back image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content"/>
+                  </div>
+                )}
+              </div>
+              <Alert variant="default" className="mt-4 bg-card text-card-foreground border-border">
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  For Markdown, use standard syntax like `**bold**`, `*italic*`, `[link](url)`, ` ```code block``` ` etc.
+                </AlertDescription>
+              </Alert>
+              <Button type="submit" className="w-full text-lg py-6">
+                <PlusCircle className="mr-2 h-5 w-5" /> Add Flashcard
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-
     

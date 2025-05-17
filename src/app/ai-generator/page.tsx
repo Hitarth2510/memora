@@ -81,95 +81,97 @@ export default function AiGeneratorPage() {
 
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <Card className="shadow-xl bg-card text-card-foreground">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold flex items-center">
-            <Sparkles className="mr-3 h-8 w-8 text-primary" />
-            AI Flashcard Generator
-          </CardTitle>
-          <CardDescription>
-            Paste your notes below, and let AI create flashcards for you. These will be added to an "AI Generated Cards" deck.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="notes" className="text-lg font-medium">Your Notes</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Paste your study notes, lecture transcripts, or text excerpts here..."
-              className="min-h-[200px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
-              rows={10}
-            />
-          </div>
-          {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <Button onClick={handleGenerate} disabled={isLoading} className="w-full text-lg py-6">
-            {isLoading ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Sparkles className="mr-2 h-5 w-5" />
-            )}
-            Generate with AI
-          </Button>
-        </CardContent>
-      </Card>
-
-      {generatedCards.length > 0 && (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto space-y-8">
         <Card className="shadow-xl bg-card text-card-foreground">
           <CardHeader>
-            <CardTitle className="text-2xl">Generated Flashcards</CardTitle>
-            <CardDescription>Review the cards and add them to your collection.</CardDescription>
+            <CardTitle className="text-3xl font-bold flex items-center">
+              <Sparkles className="mr-3 h-8 w-8 text-primary" />
+              AI Flashcard Generator
+            </CardTitle>
+            <CardDescription>
+              Paste your notes below, and let AI create flashcards for you. These will be added to an "AI Generated Cards" deck.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {generatedCards.map((card, index) => (
-              <Card key={index} className="bg-muted text-muted-foreground">
-                <CardContent className="p-4 space-y-2">
-                  <div>
-                    <p className="font-semibold text-sm text-card-foreground">Question (Front):</p>
-                    <p>{card.question}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-card-foreground">Answer (Back):</p>
-                    <p>{card.answer}</p>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAddCardToCollection(card)}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add to My Flashcards
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </CardContent>
-           <CardFooter>
-            <Button onClick={handleAddAllCards} className="w-full" disabled={generatedCards.length === 0}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add All {generatedCards.length} Cards
+          <CardContent className="space-y-6">
+            <div>
+              <Label htmlFor="notes" className="text-lg font-medium">Your Notes</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Paste your study notes, lecture transcripts, or text excerpts here..."
+                className="min-h-[200px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
+                rows={10}
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Button onClick={handleGenerate} disabled={isLoading} className="w-full text-lg py-6">
+              {isLoading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-5 w-5" />
+              )}
+              Generate with AI
             </Button>
-          </CardFooter>
+          </CardContent>
         </Card>
-      )}
-      { !isLoading && notes.length > 0 && generatedCards.length === 0 && !error && (
-        <Alert className="bg-card text-card-foreground border-border">
-            <Info className="h-4 w-4" />
-            <AlertTitle>Tip</AlertTitle>
-            <AlertDescription>
-              If no cards were generated, try providing more detailed notes or rephrasing your input.
-              The AI works best with clear statements and key facts.
-            </AlertDescription>
-        </Alert>
-      )}
+
+        {generatedCards.length > 0 && (
+          <Card className="shadow-xl bg-card text-card-foreground">
+            <CardHeader>
+              <CardTitle className="text-2xl">Generated Flashcards</CardTitle>
+              <CardDescription>Review the cards and add them to your collection.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {generatedCards.map((card, index) => (
+                <Card key={index} className="bg-muted text-muted-foreground">
+                  <CardContent className="p-4 space-y-2">
+                    <div>
+                      <p className="font-semibold text-sm text-card-foreground">Question (Front):</p>
+                      <p>{card.question}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-card-foreground">Answer (Back):</p>
+                      <p>{card.answer}</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddCardToCollection(card)}
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" /> Add to My Flashcards
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleAddAllCards} className="w-full" disabled={generatedCards.length === 0}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add All {generatedCards.length} Cards
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
+        { !isLoading && notes.length > 0 && generatedCards.length === 0 && !error && (
+          <Alert className="bg-card text-card-foreground border-border">
+              <Info className="h-4 w-4" />
+              <AlertTitle>Tip</AlertTitle>
+              <AlertDescription>
+                If no cards were generated, try providing more detailed notes or rephrasing your input.
+                The AI works best with clear statements and key facts.
+              </AlertDescription>
+          </Alert>
+        )}
+      </div>
     </div>
   );
 }
