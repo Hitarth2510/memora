@@ -2,7 +2,8 @@
 "use client";
 
 import Link from 'next/link';
-import { GraduationCap, Home, PencilRuler, Sparkles, BookOpen, LibraryBig, BarChartHorizontalBig, Flame } from 'lucide-react';
+import Image from 'next/image';
+import { Home, PencilRuler, Sparkles, BookOpen, LibraryBig, BarChartHorizontalBig, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useReviewStreak } from '@/hooks/useReviewStreak'; // Import the hook
 
@@ -13,7 +14,13 @@ export function Header() {
     <header className="bg-slate-950/80 backdrop-blur-lg border-b border-slate-800 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 text-primary hover:text-primary/90 transition-colors">
-          <GraduationCap className="h-8 w-8" />
+          <Image 
+            src="/memora-logo.png" 
+            alt="Memora Logo" 
+            width={32} // Adjust width as needed
+            height={32} // Adjust height as needed
+            className="h-8 w-8" // Keeps it consistent with previous icon size
+          />
           <h1 className="text-2xl font-semibold">Memora</h1>
         </Link>
         <nav className="flex items-center gap-1 md:gap-2">
