@@ -16,7 +16,6 @@ export default function PreloadedDecksPage() {
   const handleAddDeck = (deck: PreloadedDeck) => {
     let addedCount = 0;
     deck.cards.forEach(card => {
-      // Check if card from this specific deck already exists
       const cardExists = flashcards.some(fc => 
         fc.deckId === deck.id && 
         fc.front === card.front && 
@@ -44,7 +43,7 @@ export default function PreloadedDecksPage() {
 
   return (
     <div className="space-y-8">
-      <Card className="shadow-xl bg-card/80 backdrop-blur-lg">
+      <Card className="shadow-xl bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center">
             <LibraryBig className="mr-3 h-8 w-8 text-primary" />
@@ -57,7 +56,7 @@ export default function PreloadedDecksPage() {
       </Card>
 
       {preloadedDecks.length === 0 && (
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardContent className="pt-6">
             <p className="text-muted-foreground text-center">
               No preloaded decks are available at the moment.
@@ -69,7 +68,7 @@ export default function PreloadedDecksPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {preloadedDecks.map((deck) => (
-          <Card key={deck.id} className="flex flex-col">
+          <Card key={deck.id} className="flex flex-col bg-card text-card-foreground">
             <CardHeader>
               <CardTitle>{deck.name}</CardTitle>
               <CardDescription>{deck.description}</CardDescription>
@@ -95,3 +94,5 @@ export default function PreloadedDecksPage() {
     </div>
   );
 }
+
+    

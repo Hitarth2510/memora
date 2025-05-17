@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -60,18 +61,17 @@ export default function AiGeneratorPage() {
   };
 
   const handleAddCardToCollection = (card: AiGeneratedFlashcard) => {
-    addFlashcard(card.question, card.answer);
+    addFlashcard(card.question, card.answer, "ai-generated", "AI Generated Cards"); // Assign to a default AI deck
     toast({
       title: 'Card Added!',
       description: `"${card.question.substring(0,30)}..." added to your collection.`,
     });
-    // Optionally remove from generated list or mark as added
     setGeneratedCards(prev => prev.filter(c => c.question !== card.question || c.answer !== card.answer));
   };
   
   const handleAddAllCards = () => {
     if (generatedCards.length === 0) return;
-    generatedCards.forEach(card => addFlashcard(card.question, card.answer));
+    generatedCards.forEach(card => addFlashcard(card.question, card.answer, "ai-generated", "AI Generated Cards"));
     toast({
       title: `${generatedCards.length} Cards Added!`,
       description: `All AI-generated cards have been added to your collection.`,
@@ -82,14 +82,14 @@ export default function AiGeneratorPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <Card className="shadow-xl">
+      <Card className="shadow-xl bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center">
             <Sparkles className="mr-3 h-8 w-8 text-primary" />
             AI Flashcard Generator
           </CardTitle>
           <CardDescription>
-            Paste your notes below, and let AI create flashcards for you.
+            Paste your notes below, and let AI create flashcards for you. These will be added to an "AI Generated Cards" deck.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -100,7 +100,7 @@ export default function AiGeneratorPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Paste your study notes, lecture transcripts, or text excerpts here..."
-              className="min-h-[200px] text-base"
+              className="min-h-[200px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
               rows={10}
             />
           </div>
@@ -123,14 +123,14 @@ export default function AiGeneratorPage() {
       </Card>
 
       {generatedCards.length > 0 && (
-        <Card className="shadow-xl">
+        <Card className="shadow-xl bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="text-2xl">Generated Flashcards</CardTitle>
             <CardDescription>Review the cards and add them to your collection.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {generatedCards.map((card, index) => (
-              <Card key={index} className="bg-secondary/50">
+              <Card key={index} className="bg-secondary/30">
                 <CardContent className="p-4 space-y-2">
                   <div>
                     <p className="font-semibold text-sm text-muted-foreground">Question (Front):</p>
@@ -161,7 +161,7 @@ export default function AiGeneratorPage() {
         </Card>
       )}
       { !isLoading && notes.length > 0 && generatedCards.length === 0 && !error && (
-        <Alert>
+        <Alert className="bg-card text-card-foreground border-border">
             <Info className="h-4 w-4" />
             <AlertTitle>Tip</AlertTitle>
             <AlertDescription>
@@ -173,3 +173,5 @@ export default function AiGeneratorPage() {
     </div>
   );
 }
+
+    

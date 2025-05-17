@@ -12,50 +12,50 @@ export default function HomePage() {
     {
       icon: <Sparkles className="h-10 w-10 text-primary mb-4" />,
       title: "AI Flashcard Generation",
-      description: "Instantly create flashcards from your notes or any topic. Let AI do the heavy lifting so you can focus on learning. Describe a concept, and watch Memora build your study materials.",
+      description: "Instantly create flashcards from your notes or any topic. Let AI do the heavy lifting. Describe a concept, and watch Memora build your study materials efficiently.",
       link: "/ai-generator",
       linkLabel: "Try AI Generator",
       imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Futuristic interface showing AI generating flashcards from text input",
-      dataAiHint: "AI generation futuristic interface"
+      imageAlt: "AI neural network abstractly generating flashcards from digital text streams",
+      dataAiHint: "AI neural network" // More specific hint
     },
     {
       icon: <Edit3 className="h-10 w-10 text-primary mb-4" />,
       title: "Custom Card Creation",
-      description: "Craft your own flashcards with rich text formatting using Markdown, embed images, and include code snippets for technical topics. Tailor your learning experience to your exact needs.",
+      description: "Craft your own flashcards with rich text formatting using Markdown, embed images, and include code snippets for technical topics. Tailor your learning experience precisely.",
       link: "/create",
       linkLabel: "Create Your Cards",
       imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Sleek card creation interface with markdown preview and image upload option",
-      dataAiHint: "markdown editor modern UI"
+      imageAlt: "Modern interface showing markdown editor with live preview for flashcard creation",
+      dataAiHint: "markdown editor UI" // More specific hint
     },
     {
       icon: <Brain className="h-10 w-10 text-primary mb-4" />,
       title: "Spaced Repetition Learning",
-      description: "Master concepts efficiently with the proven SM-2 algorithm. Memora schedules reviews at optimal intervals to maximize retention and ensure long-term memory.",
+      description: "Master concepts effectively with the proven SM-2 algorithm. Memora intelligently schedules reviews at optimal intervals to maximize retention and build long-term memory.",
       link: "/review",
       linkLabel: "Start Reviewing",
       imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Abstract visualization of a brain with connected nodes representing spaced repetition intervals",
-      dataAiHint: "spaced repetition abstract"
+      imageAlt: "Abstract visualization of interconnected brain pathways strengthening over time",
+      dataAiHint: "brain pathways abstract" // More specific hint
     },
     {
       icon: <BarChart3 className="h-10 w-10 text-primary mb-4" />,
       title: "Learning Analytics",
-      description: "Track your progress, visualize your study habits, and identify areas for improvement with our insightful analytics dashboard. See your learning journey unfold with data.",
+      description: "Track your progress, visualize study habits, and identify areas for improvement with our insightful analytics. See your learning journey unfold through data-driven insights.",
       link: "/analytics",
       linkLabel: "View Analytics",
       imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Futuristic analytics dashboard with glowing charts and graphs",
-      dataAiHint: "dashboard futuristic charts"
+      imageAlt: "Futuristic dashboard displaying various glowing charts and learning metrics",
+      dataAiHint: "dashboard futuristic charts" // Consistent hint
     }
   ];
 
   const subFeatures = [
-    { icon: <Zap className="h-6 w-6 text-primary" />, label: "Easy to Use Interface" },
-    { icon: <BookOpen className="h-6 w-6 text-primary" />, label: "Real-time Learning" },
-    { icon: <PlusCircle className="h-6 w-6 text-primary" />, label: "PYQ-Inspired Decks" }, // Placeholder for "PYQ Practice"
-    { icon: <BarChart3 className="h-6 w-6 text-primary" />, label: "Performance Tracking" },
+    { icon: <Zap className="h-6 w-6 text-primary" />, label: "Intuitive Interface" },
+    { icon: <BookOpen className="h-6 w-6 text-primary" />, label: "Efficient Study" },
+    { icon: <PlusCircle className="h-6 w-6 text-primary" />, label: "Curated Decks" },
+    { icon: <BarChart3 className="h-6 w-6 text-primary" />, label: "Progress Tracking" },
   ];
 
 
@@ -70,16 +70,15 @@ export default function HomePage() {
                      bg-radial-gradient-blue opacity-15 pointer-events-none rounded-full blur-3xl"
         ></div>
 
-        <p className="text-sm sm:text-base text-primary mb-4 font-medium z-10 uppercase tracking-wider">Memora Quiz Simulator</p>
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-8 z-10 leading-tight">
-          Practice and Improve <br className="hidden sm:block" /> in a <span className="text-primary">Real Quiz Environment</span>.
+          Unlock Your Learning <br className="hidden sm:block" /> Potential with <span className="text-primary">Memora</span>.
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-slate-300 mb-10 max-w-3xl mx-auto z-10">
-          Our Quiz Simulator uses advanced learning algorithms for authentic practice, helping you familiarize yourself with patterns and concepts. The timed format improves retention and builds confidence.
+          Master any subject with AI-powered flashcards and intelligent spaced repetition. Learn smarter, remember longer, and achieve your goals.
         </p>
         <Button size="lg" asChild className="shadow-lg hover:shadow-primary/50 transition-shadow z-10 text-lg py-7 px-10 bg-primary hover:bg-primary/90">
           <Link href="/review">
-            Take a Quiz Now <ArrowRight className="ml-2 h-5 w-5" />
+            Start Learning Now <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
         </Button>
       </section>
@@ -92,20 +91,20 @@ export default function HomePage() {
               key={feature.title} 
               className={`flex flex-col md:items-center gap-10 md:gap-16 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
             >
-              <div className="md:w-1/2 relative">
-                <div className="absolute -inset-4 bg-primary/10 rounded-3xl blur-2xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+              <div className="md:w-1/2 relative group">
+                <div className="absolute -inset-4 bg-primary/5 rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
                 <Image 
                   src={feature.imageSrc} 
                   alt={feature.imageAlt} 
                   width={700} 
                   height={500} 
-                  className="rounded-2xl shadow-2xl object-cover aspect-[7/5] relative z-10 border border-slate-700" 
+                  className="rounded-2xl shadow-2xl object-cover aspect-[7/5] relative z-10 border border-slate-700/50 group-hover:border-primary/30 transition-colors" 
                   data-ai-hint={feature.dataAiHint}
                 />
               </div>
               <div className="md:w-1/2">
                 <div className="flex items-start mb-5">
-                  <div className="p-3 bg-slate-800 rounded-xl mr-4 border border-slate-700">
+                  <div className="p-3 bg-slate-800/70 rounded-xl mr-4 border border-slate-700 backdrop-blur-sm">
                     {feature.icon}
                   </div>
                   <div>
@@ -114,7 +113,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-slate-300 leading-relaxed mb-8 text-base md:text-lg">{feature.description}</p>
-                <Button asChild variant="outline" className="text-base py-6 px-8 border-primary text-primary hover:bg-primary/10 hover:text-primary">
+                <Button asChild variant="outline" className="text-base py-6 px-8 border-primary text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300 transform hover:scale-105">
                   <Link href={feature.link}>
                     {feature.linkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -131,7 +130,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {subFeatures.map(sf => (
               <div key={sf.label} className="flex flex-col items-center">
-                <div className="p-3 bg-slate-800 rounded-full mb-3 border border-slate-700">
+                <div className="p-3 bg-slate-800/70 rounded-full mb-3 border border-slate-700 backdrop-blur-sm">
                  {sf.icon}
                 </div>
                 <p className="text-sm text-slate-300">{sf.label}</p>
@@ -143,3 +142,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

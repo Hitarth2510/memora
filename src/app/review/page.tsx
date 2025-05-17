@@ -85,7 +85,8 @@ export default function ReviewPage() {
       setCurrentCardIndex(prev => prev + 1);
     } else {
       setSessionCompleted(true);
-      if (dueCards.length > 0 && isStreakLoaded && cardsReviewedThisSession > 0) { 
+      // Check cardsReviewedThisSession as well to ensure a review actually happened
+      if (dueCards.length > 0 && isStreakLoaded && (cardsReviewedThisSession + 1) > 0) { 
         recordReviewSession();
       }
     }
@@ -97,6 +98,7 @@ export default function ReviewPage() {
   
   const handleReviewAnotherDeck = () => {
     setSelectedDeck(null); 
+    // No need to manually call loadAvailableDecks if selectedDeck change triggers it
   };
 
   const handleDeleteDeck = (deck: DeckInfo) => {
@@ -111,8 +113,8 @@ export default function ReviewPage() {
         description: `The deck "${deckToDelete.name}" has been removed.`,
       });
       setDeckToDelete(null);
-      setSelectedDeck(null); // Go back to deck selection
-      loadAvailableDecks(); // Refresh deck list
+      setSelectedDeck(null); 
+      // loadAvailableDecks will be called by useEffect on selectedDeck change
     }
   };
 
@@ -130,28 +132,30 @@ export default function ReviewPage() {
      if (availableDecks.length === 0 && !isLoading && flashcardsLoaded) {
       return (
         <div className="text-center max-w-lg mx-auto py-12">
-          <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
-          <h2 className="text-4xl font-bold mb-4">No Decks Available!</h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            You don't have any flashcard decks yet, or no cards are due for review.
-          </p>
-          <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
-            <Button size="lg" asChild>
-              <Link href="/create">Create Your First Deck</Link>
-            </Button>
-             <Button size="lg" variant="outline" asChild>
-              <Link href="/decks">Browse Preloaded Decks</Link>
-            </Button>
-            <Button size="lg" variant="ghost" asChild>
+          <Card className="bg-card text-card-foreground shadow-xl p-8">
+            <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
+            <h2 className="text-4xl font-bold mb-4">No Decks Available!</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              You don't have any flashcard decks yet, or no cards are due for review.
+            </p>
+            <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
+              <Button size="lg" asChild>
+                <Link href="/create">Create Your First Deck</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/decks">Browse Preloaded Decks</Link>
+              </Button>
+            </div>
+          </Card>
+           <Button size="lg" variant="ghost" asChild className="mt-8">
               <Link href="/">Go Home</Link>
             </Button>
-          </div>
         </div>
       );
     }
     return (
       <div className="max-w-md mx-auto space-y-6 py-8">
-        <Card className="shadow-xl">
+        <Card className="shadow-xl bg-card text-card-foreground">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold flex items-center justify-center">
               <Library className="mr-3 h-8 w-8 text-primary" />
@@ -164,7 +168,7 @@ export default function ReviewPage() {
               <div key={deck.id} className="flex items-center space-x-2">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-between py-6 text-lg hover:bg-primary/10 flex-grow"
+                  className="w-full justify-between py-6 text-lg hover:bg-primary/10 flex-grow border-border hover:border-primary"
                   onClick={() => handleSelectDeck(deck)}
                   aria-label={`Review ${deck.name}, ${deck.dueCardCount} cards due`}
                 >
@@ -191,10 +195,10 @@ export default function ReviewPage() {
                     </Button>
                   </AlertDialogTrigger>
                    {deckToDelete && deckToDelete.id === deck.id && (
-                    <AlertDialogContent>
+                    <AlertDialogContent className="bg-card border-border text-card-foreground">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure you want to delete this deck?</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogDescription className="text-muted-foreground">
                           This action will permanently delete the deck "{deckToDelete?.name}" and all its flashcards. This cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
@@ -214,7 +218,7 @@ export default function ReviewPage() {
           </CardContent>
           {availableDecks.length > 0 && (
             <CardFooter>
-               <Alert>
+               <Alert className="bg-secondary/30 text-secondary-foreground border-border">
                   <Info className="h-4 w-4" />
                   <AlertTitle>Review Tip</AlertTitle>
                   <AlertDescription>
@@ -236,18 +240,20 @@ export default function ReviewPage() {
   if (sessionCompleted) {
     return (
       <div className="text-center max-w-lg mx-auto py-12">
-        <CheckCircle className="mx-auto h-20 w-20 text-green-500 mb-6" />
-        <h2 className="text-4xl font-bold mb-4">Deck Review Complete!</h2>
-        <p className="text-lg text-muted-foreground mb-8">
-          Great job! You've reviewed all {cardsReviewedThisSession} due cards for "{selectedDeck?.name}".
-          {isStreakLoaded && cardsReviewedThisSession > 0 ? " Your review streak has been updated!" : ""}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/">Back to Dashboard</Link>
-            </Button>
-        </div>
+        <Card className="bg-card text-card-foreground shadow-xl p-8">
+          <CheckCircle className="mx-auto h-20 w-20 text-green-500 mb-6" />
+          <h2 className="text-4xl font-bold mb-4">Deck Review Complete!</h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Great job! You've reviewed all {cardsReviewedThisSession} due cards for "{selectedDeck?.name}".
+            {isStreakLoaded && cardsReviewedThisSession > 0 ? " Your review streak has been updated!" : ""}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/">Back to Dashboard</Link>
+              </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -255,28 +261,30 @@ export default function ReviewPage() {
   if (!currentCard && selectedDeck && dueCards.length === 0 && !isLoading && flashcardsLoaded) {
      return (
       <div className="text-center max-w-lg mx-auto py-12">
-        <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
-        <h2 className="text-4xl font-bold mb-4">All Caught Up in "{selectedDeck.name}"!</h2>
-        <p className="text-lg text-muted-foreground mb-8">
-          You have no flashcards due for review in this deck right now.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
-           <Button size="lg" variant="outline" asChild>
-            <Link href="/">Go Home</Link>
-          </Button>
-        </div>
+        <Card className="bg-card text-card-foreground shadow-xl p-8">
+            <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
+            <h2 className="text-4xl font-bold mb-4">All Caught Up in "{selectedDeck.name}"!</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              You have no flashcards due for review in this deck right now.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/">Go Home</Link>
+              </Button>
+            </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center space-y-6 max-w-xl mx-auto">
-      <Card className="w-full shadow-none border-none bg-transparent">
-        <CardHeader className="text-center pb-2">
+      <Card className="w-full shadow-none border-none bg-transparent text-center">
+        <CardHeader className="pb-2">
           <CardTitle className="text-3xl font-semibold">Review: {selectedDeck?.name}</CardTitle>
           {dueCards.length > 0 && (
-            <CardDescription className="text-base">
+            <CardDescription className="text-base text-muted-foreground">
                 Card {currentCardIndex + 1} of {dueCards.length}. Focus and recall!
             </CardDescription>
           )}
@@ -302,8 +310,7 @@ export default function ReviewPage() {
               </Button>
               <Button
                 onClick={() => handleAnswer(true)}
-                className="text-lg py-6 px-8 flex-1 shadow-md hover:shadow-lg text-white"
-                style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}
+                className="text-lg py-6 px-8 flex-1 shadow-md hover:shadow-lg bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 <ThumbsUp className="mr-2 h-5 w-5" /> I Knew It!
               </Button>
@@ -319,3 +326,5 @@ export default function ReviewPage() {
     </div>
   );
 }
+
+    

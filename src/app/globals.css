@@ -5,8 +5,8 @@
 
 @layer base {
   :root {
-    /* Base dark theme values, closely matching slate-950/slate-900 */
-    --background: 220 30% 5%; /* Very dark blue-gray e.g. near #0A0E14 */
+    /* Base dark theme values, very dark blue-gray */
+    --background: 220 30% 5%; /* e.g. #0A0E14, slate-950ish */
     --foreground: 0 0% 95%; /* Light Gray e.g. #F3F4F6 for text */
 
     --card: 220 30% 9%; /* Slightly lighter dark blue-gray for cards e.g. #111827 or slate-900 */
@@ -15,7 +15,7 @@
     --popover: 220 30% 7%; /* Darker popover e.g. #0F131A */
     --popover-foreground: 0 0% 98%;
     
-    --primary: 207 87% 68%; /* Calm Blue #64B5F6 - kept same, good contrast */
+    --primary: 207 87% 68%; /* Calm Blue #64B5F6 */
     --primary-foreground: 222 47% 11%; /* Dark text on blue for primary buttons */
     
     --secondary: 220 25% 15%; /* Darker secondary e.g. #1E293B or slate-800 */
@@ -24,7 +24,7 @@
     --muted: 220 20% 20%; /* Muted dark e.g. #293344 or slate-700 */
     --muted-foreground: 0 0% 63.9%; /* Lighter muted text e.g. #A0AEC0 */
     
-    --accent: 125 50% 60%; /* Adjusted Soft Green for better dark mode pop e.g. #81C784 */
+    --accent: 125 50% 60%; /* Soft Green for accents e.g. #81C784 */
     --accent-foreground: 240 10% 3.9%; /* Dark text for contrast on soft green */
     
     --destructive: 0 70% 50%; /* Saturated red for dark mode e.g. #E53E3E */
@@ -49,11 +49,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Apply Geist Sans by default */
     font-family: var(--font-geist-sans), sans-serif;
   }
-  /* html.dark ensures that browser UI elements like scrollbars match the dark theme if the browser supports color-scheme */
-   html.dark {
+   html.dark { /* Ensure html itself has dark color scheme for browser UI consistency */
      color-scheme: dark;
   }
 }
@@ -64,3 +62,5 @@
     background-image: radial-gradient(ellipse at center, hsl(var(--primary) / 0.5) 0%, transparent 70%);
   }
 }
+
+    

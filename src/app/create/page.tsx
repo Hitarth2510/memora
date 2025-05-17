@@ -64,7 +64,7 @@ export default function CreateFlashcardPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card className="shadow-xl">
+      <Card className="shadow-xl bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center">
             <PlusCircle className="mr-3 h-8 w-8 text-primary" />
@@ -84,7 +84,7 @@ export default function CreateFlashcardPage() {
                 value={front}
                 onChange={(e) => setFront(e.target.value)}
                 placeholder="e.g., What is the capital of **France**? Or `code` snippets."
-                className="min-h-[100px] text-base"
+                className="min-h-[100px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
                 required
               />
             </div>
@@ -98,10 +98,10 @@ export default function CreateFlashcardPage() {
                 value={frontImageUrl}
                 onChange={(e) => setFrontImageUrl(e.target.value)}
                 placeholder="https://example.com/image.png"
-                className="text-base"
+                className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
               />
               {frontImageUrl && isValidHttpUrl(frontImageUrl) && (
-                <div className="mt-2 rounded-md overflow-hidden border p-2">
+                <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
                   <Image src={frontImageUrl} alt="Front image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content" />
                 </div>
               )}
@@ -114,7 +114,7 @@ export default function CreateFlashcardPage() {
                 value={back}
                 onChange={(e) => setBack(e.target.value)}
                 placeholder="e.g., Paris. You can include *italic* or **bold** text."
-                className="min-h-[100px] text-base"
+                className="min-h-[100px] text-base bg-input text-foreground border-border placeholder-muted-foreground"
                 required
               />
             </div>
@@ -128,15 +128,15 @@ export default function CreateFlashcardPage() {
                 value={backImageUrl}
                 onChange={(e) => setBackImageUrl(e.target.value)}
                 placeholder="https://example.com/another-image.jpg"
-                className="text-base"
+                className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
               />
               {backImageUrl && isValidHttpUrl(backImageUrl) && (
-                 <div className="mt-2 rounded-md overflow-hidden border p-2">
+                 <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
                   <Image src={backImageUrl} alt="Back image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content"/>
                 </div>
               )}
             </div>
-            <Alert variant="default" className="mt-4">
+            <Alert variant="default" className="mt-4 bg-card text-card-foreground border-border">
               <Info className="h-4 w-4" />
               <AlertDescription>
                 For Markdown, use standard syntax like `**bold**`, `*italic*`, `[link](url)`, ` ```code block``` ` etc.
@@ -151,3 +151,5 @@ export default function CreateFlashcardPage() {
     </div>
   );
 }
+
+    

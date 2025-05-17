@@ -21,16 +21,11 @@ const prepareChartData = (flashcards: Flashcard[]): { date: string; created: num
     }
   });
 
-  // Ensure chronological order for the chart by sorting based on actual date objects
   const sortedData = Object.entries(countsByMonth)
     .map(([dateStr, created]) => {
-        // Heuristic to parse 'MMM YY' back to a sortable date. This is imperfect.
-        // A better way would be to store the original month-year string like "YYYY-MM"
         const parts = dateStr.split(' ');
         let year = parseInt(parts[1], 10);
-        if (year < 100) year += 2000; // Assuming 21st century
-        
-        // Convert month abbreviation to month number
+        if (year < 100) year += 2000; 
         const monthIndex = new Date(Date.parse(parts[0] +" 1, 2000")).getMonth();
         return { originalDateStr: dateStr, dateObj: new Date(year, monthIndex), created };
     })
@@ -60,8 +55,8 @@ export default function AnalyticsPage() {
   }, [flashcards, isLoaded]);
 
   return (
-    <div className="space-y-8">
-      <Card className="shadow-xl bg-card/80 backdrop-blur-lg">
+    <div className="space-y-8 text-foreground">
+      <Card className="shadow-xl bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center">
             <Activity className="mr-3 h-8 w-8 text-primary" />
@@ -74,7 +69,7 @@ export default function AnalyticsPage() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <ChartIcon className="mr-2 h-6 w-6 text-primary" />
@@ -92,22 +87,23 @@ export default function AnalyticsPage() {
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    className="text-xs"
+                    className="text-xs fill-muted-foreground"
                   />
                   <YAxis 
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
                     allowDecimals={false} 
-                    className="text-xs"
+                    className="text-xs fill-muted-foreground"
                   />
                   <Tooltip
                     cursor={{ fill: 'hsl(var(--muted))', radius: 4 }}
                     contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
+                        backgroundColor: 'hsl(var(--card))', // Use card background for tooltip
                         borderColor: 'hsl(var(--border))',
                         borderRadius: 'var(--radius)',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                        color: 'hsl(var(--card-foreground))' // Ensure text color matches
                     }}
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                     itemStyle={{ color: 'hsl(var(--primary))' }}
@@ -123,7 +119,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <CalendarDays className="mr-2 h-6 w-6 text-primary" />
@@ -136,7 +132,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg">
+        <Card className="shadow-lg bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
                 <LineChart className="mr-2 h-6 w-6 text-primary" />
@@ -149,7 +145,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg">
+        <Card className="shadow-lg bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <Orbit className="mr-2 h-6 w-6 text-primary" />
@@ -162,7 +158,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
         
-        <Card className="lg:col-span-2 shadow-lg">
+        <Card className="lg:col-span-2 shadow-lg bg-card text-card-foreground">
            <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <TrendingUp className="mr-2 h-6 w-6 text-primary" />
@@ -179,3 +175,5 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
+    
