@@ -14,9 +14,9 @@ interface AppFeature {
   description: string;
   link: string;
   linkLabel: string;
-  baseImageSrc: string; // Original placeholder
+  baseImageSrc: string; 
   imageAlt: string;
-  imagePrompt: string; // Prompt for AI generation
+  imagePrompt: string; 
 }
 
 const initialAppFeatures: AppFeature[] = [
@@ -27,8 +27,8 @@ const initialAppFeatures: AppFeature[] = [
     link: "/ai-generator",
     linkLabel: "Try AI Generator",
     baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "AI neural network abstractly generating flashcards from digital text streams",
-    imagePrompt: "Futuristic image of an AI neural network glowing and abstractly generating flashcards from streams of digital text. Dark theme with blue and purple highlights, digital aesthetic."
+    imageAlt: "Futuristic AI flashcard generation feature node connected to a central hub.",
+    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'AI Flashcard Generation' features a subtle brain or spark icon, linked by light blue energy lines. Minimalist, high-tech, dark gray and blue tones."
   },
   {
     icon: <Edit3 className="h-10 w-10 text-primary mb-4" />,
@@ -37,8 +37,8 @@ const initialAppFeatures: AppFeature[] = [
     link: "/create",
     linkLabel: "Create Your Cards",
     baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Modern interface showing markdown editor with live preview for flashcard creation",
-    imagePrompt: "Sleek, dark-themed UI of a modern markdown editor with a live preview pane for creating flashcards. Emphasize clarity and futuristic design elements, code snippets visible."
+    imageAlt: "Futuristic custom card creation feature node connected to a central hub.",
+    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'Custom Card Creation' features an edit or pencil icon, linked by light blue energy lines. Abstract representation of a card interface near the node. Minimalist, high-tech, dark gray and blue tones."
   },
   {
     icon: <Brain className="h-10 w-10 text-primary mb-4" />,
@@ -47,8 +47,8 @@ const initialAppFeatures: AppFeature[] = [
     link: "/review",
     linkLabel: "Start Reviewing",
     baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Abstract visualization of interconnected brain pathways strengthening over time",
-    imagePrompt: "Abstract visualization of interconnected brain pathways and neural connections. Glowing nodes and connections symbolize learning and memory reinforcement. Dark background with subtle cosmic or digital textures."
+    imageAlt: "Futuristic spaced repetition learning feature node connected to a central hub.",
+    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'Spaced Repetition' features a calendar or upward graph icon, linked by light blue energy lines. Abstract representation of learning progression. Minimalist, high-tech, dark gray and blue tones."
   },
   {
     icon: <BarChart3 className="h-10 w-10 text-primary mb-4" />,
@@ -57,8 +57,8 @@ const initialAppFeatures: AppFeature[] = [
     link: "/analytics",
     linkLabel: "View Analytics",
     baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Futuristic dashboard displaying various glowing charts and learning metrics",
-    imagePrompt: "Dynamic and futuristic dashboard UI displaying various glowing charts, graphs, and learning metrics. Holographic elements, data visualizations on a dark background with a high-tech feel."
+    imageAlt: "Futuristic learning analytics feature node connected to a central hub.",
+    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'Learning Analytics' features a bar chart or data points icon, linked by light blue energy lines. Mini glowing chart elements visible. Minimalist, high-tech, dark gray and blue tones."
   }
 ];
 
@@ -83,12 +83,11 @@ export default function HomePage() {
           if (result.imageUrl) {
             setFeatureImages(prev => ({ ...prev, [feature.title]: result.imageUrl }));
           } else {
-             // Keep placeholder if generation fails or returns no URL
             setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc }));
           }
         } catch (error) {
           console.error(`Failed to generate image for ${feature.title}:`, error);
-          setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc })); // Fallback to placeholder
+          setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc })); 
         } finally {
           setLoadingImages(prev => ({ ...prev, [feature.title]: false }));
         }
@@ -144,7 +143,7 @@ export default function HomePage() {
                       width={700} 
                       height={500} 
                       className="object-cover w-full h-full"
-                      unoptimized={featureImages[feature.title]?.startsWith('data:')} // Important for data URIs
+                      unoptimized={featureImages[feature.title]?.startsWith('data:')} 
                     />
                   )}
                 </div>
