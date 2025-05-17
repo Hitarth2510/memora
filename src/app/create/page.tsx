@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -11,6 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, CheckCircle, Image as ImageIcon, Info } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+
+const DEFAULT_DECK_ID = "user-created";
+const DEFAULT_DECK_NAME = "My Custom Cards";
 
 export default function CreateFlashcardPage() {
   const [front, setFront] = useState('');
@@ -30,10 +34,17 @@ export default function CreateFlashcardPage() {
       });
       return;
     }
-    addFlashcard(front, back, frontImageUrl.trim() || undefined, backImageUrl.trim() || undefined);
+    addFlashcard(
+      front, 
+      back, 
+      DEFAULT_DECK_ID, 
+      DEFAULT_DECK_NAME, 
+      frontImageUrl.trim() || undefined, 
+      backImageUrl.trim() || undefined
+    );
     toast({
       title: 'Flashcard Created!',
-      description: 'Your new flashcard has been added to your collection.',
+      description: `Your new flashcard has been added to '${DEFAULT_DECK_NAME}'.`,
       action: <CheckCircle className="text-green-500" />,
     });
     setFront('');
@@ -61,6 +72,7 @@ export default function CreateFlashcardPage() {
           </CardTitle>
           <CardDescription>
             Fill in the front and back. Markdown is supported for text. You can also add image URLs.
+            Cards created here will be added to your "{DEFAULT_DECK_NAME}" deck.
           </CardDescription>
         </CardHeader>
         <CardContent>

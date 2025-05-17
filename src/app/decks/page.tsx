@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from '@/components/ui/button';
@@ -15,10 +16,14 @@ export default function PreloadedDecksPage() {
   const handleAddDeck = (deck: PreloadedDeck) => {
     let addedCount = 0;
     deck.cards.forEach(card => {
-      // Simple check to avoid adding exact duplicates if deck is added multiple times
-      const cardExists = flashcards.some(fc => fc.front === card.front && fc.back === card.back);
+      // Check if card from this specific deck already exists
+      const cardExists = flashcards.some(fc => 
+        fc.deckId === deck.id && 
+        fc.front === card.front && 
+        fc.back === card.back
+      );
       if (!cardExists) {
-        addFlashcard(card.front, card.back, card.frontImageUrl, card.backImageUrl);
+        addFlashcard(card.front, card.back, deck.id, deck.name, card.frontImageUrl, card.backImageUrl);
         addedCount++;
       }
     });
@@ -32,7 +37,7 @@ export default function PreloadedDecksPage() {
     } else {
        toast({
         title: 'Deck Already Added',
-        description: `All cards from "${deck.name}" seem to be in your collection already.`,
+        description: `All cards from "${deck.name}" seem to be in your collection already or no new cards found.`,
       });
     }
   };
@@ -76,6 +81,7 @@ export default function PreloadedDecksPage() {
                 {deck.cards.slice(0, 3).map((card, index) => (
                   <li key={index} className="truncate">{card.front}</li>
                 ))}
+                {deck.cards.length > 3 && <li className="text-xs">...and more</li>}
               </ul>
             </CardContent>
             <CardFooter>

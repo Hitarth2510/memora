@@ -1,9 +1,12 @@
+
 export interface Flashcard {
   id: string;
   front: string;
   back: string;
   frontImageUrl?: string;
   backImageUrl?: string;
+  deckId: string; // Added to identify the deck the card belongs to
+  deckName: string; // Added for displaying deck name easily
   // SM-2 parameters
   interval: number; // in days
   repetitions: number;
@@ -16,6 +19,7 @@ export interface Flashcard {
 export interface AiGeneratedFlashcard {
   question: string;
   answer: string;
+  // deckId and deckName could be added here if AI generates for a specific deck context
 }
 
 // For Preloaded Decks
@@ -31,4 +35,11 @@ export interface PreloadedDeck {
   description: string;
   category: string;
   cards: PreloadedDeckEntry[];
+}
+
+// For displaying deck selection
+export interface DeckInfo {
+  id: string;
+  name: string;
+  dueCardCount: number;
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Flashcard } from '@/lib/types';
@@ -27,15 +28,40 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto perspective">
+    <div className="w-full max-w-xl mx-auto perspective group"> {/* Added group for group-hover */}
       <Card 
         className={cn(
-          "h-96 md:h-112 flex flex-col items-center justify-center p-2 text-center cursor-pointer shadow-xl transition-transform duration-700 preserve-3d relative",
-          "prose dark:prose-invert prose-sm md:prose-base max-w-none", // For Markdown styling
+          "h-96 md:h-112 flex flex-col items-center justify-center p-2 text-center cursor-pointer shadow-xl transition-all duration-700 preserve-3d relative",
+          "prose dark:prose-invert prose-sm md:prose-base max-w-none", 
+          "hover:shadow-primary/30 hover:shadow-2xl", // Glowing effect on hover
+          "group-hover:[transform:rotateY(var(--tw-rotate-y))_rotateX(var(--tw-rotate-x))_scale(1.05)]", // 3D tilt, adjusted for existing flip
           isFlipped ? "rotate-y-180" : ""
         )}
         onClick={onFlip}
         aria-live="polite"
+        style={{
+          // Default rotations, will be overridden by hover if not flipped
+          // @ts-ignore
+          "--tw-rotate-x": isFlipped ? "0deg" : "0deg", // Keep X flat unless hovered
+          "--tw-rotate-y": isFlipped ? "180deg" : "0deg",
+        }}
+        onMouseMove={(e) => {
+          if (isFlipped) return; // Don't apply hover tilt if card is flipped
+          const card = e.currentTarget;
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          const rotateX = (-y / rect.height) * 10; // Max rotation 5deg
+          const rotateY = (x / rect.width) * 10;  // Max rotation 5deg
+          card.style.setProperty('--tw-rotate-x', `${rotateX}deg`);
+          card.style.setProperty('--tw-rotate-y', `${rotateY}deg`);
+        }}
+        onMouseLeave={(e) => {
+           if (isFlipped) return;
+          const card = e.currentTarget;
+          card.style.setProperty('--tw-rotate-x', `0deg`);
+          card.style.setProperty('--tw-rotate-y', `0deg`);
+        }}
       >
         {/* Front of the Card */}
         <div className="absolute inset-0 backface-hidden flex flex-col">
@@ -100,6 +126,15 @@ export function FlashcardDisplay({ flashcard, isFlipped, onFlip }: FlashcardDisp
         .rotate-y-180 {
           transform: rotateY(180deg);
         }
+        /* Ensure hover transformations apply correctly with existing flip */
+        .group:hover .preserve-3d:not(.rotate-y-180) {
+           transform: rotateY(var(--tw-rotate-y)) rotateX(var(--tw-rotate-x)) scale(1.05);
+        }
+        .group:hover .preserve-3d.rotate-y-180 {
+           /* Keep it flipped but allow other transforms like scale if desired */
+           transform: rotateY(180deg) scale(1.05);
+        }
+
         .markdown-content img {
           max-width: 100%;
           max-height: 100px; /* Adjust as needed for images within markdown */
