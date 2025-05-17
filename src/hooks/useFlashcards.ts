@@ -37,11 +37,18 @@ export function useFlashcards() {
     }
   }, [flashcards, isLoaded]);
 
-  const addFlashcard = useCallback((front: string, back: string) => {
+  const addFlashcard = useCallback((
+    front: string, 
+    back: string, 
+    frontImageUrl?: string, 
+    backImageUrl?: string
+  ) => {
     const newFlashcard: Flashcard = {
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, // More unique ID
       front,
       back,
+      frontImageUrl,
+      backImageUrl,
       interval: 0,
       repetitions: 0,
       easinessFactor: INITIAL_EASINESS_FACTOR,
