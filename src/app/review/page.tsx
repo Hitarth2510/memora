@@ -58,21 +58,30 @@ export default function ReviewPage() {
 
   const startReviewSession = useCallback((deck: DeckInfo, reviewAll: boolean = false) => {
     setIsLoading(true);
+    // Reset states for the new session first
+    setCurrentCardIndex(0);
+    setIsFlipped(false);
+    setSessionCompleted(false);
+    setCardsReviewedThisSession(0);
+    setNextReviewMessage(null);
+
     let cardsToReview: Flashcard[];
 
     if (reviewAll) {
-      const allFlashcardsCurrent = flashcards; 
+      // When reviewAll is true, get all cards for the selected deck
+      const allFlashcardsCurrent = flashcards; // These are all flashcards from the hook
       const currentDeckId = deck.id;
       console.log(`[ReviewPage] Re-reviewing deck ID: ${currentDeckId}, Name: ${deck.name}. Total flashcards in hook: ${allFlashcardsCurrent.length}`);
-      const filteredCards = allFlashcardsCurrent.filter(fc => {
-        return fc.deckId === currentDeckId;
-      });
-      console.log(`[ReviewPage] Filtered ${filteredCards.length} cards for re-review.`);
+      
+      const filteredCards = allFlashcardsCurrent.filter(fc => fc.deckId === currentDeckId);
+      console.log(`[ReviewPage] Filtered ${filteredCards.length} cards for re-review of deck '${deck.name}'.`);
       cardsToReview = filteredCards;
     } else {
+      // Default behavior: get only due cards for the selected deck
       cardsToReview = getDueFlashcards(deck.id);
     }
     
+    // Sort cards: primarily by next review date, then by creation timestamp in ID, then by full ID
     cardsToReview.sort((a, b) => {
       const dateA = a.nextReviewDate ? new Date(a.nextReviewDate).getTime() : 0;
       const dateB = b.nextReviewDate ? new Date(b.nextReviewDate).getTime() : 0;
@@ -92,11 +101,6 @@ export default function ReviewPage() {
     });
 
     setCardsForReviewSession(cardsToReview);
-    setCurrentCardIndex(0);
-    setIsFlipped(false);
-    setSessionCompleted(false);
-    setCardsReviewedThisSession(0);
-    setNextReviewMessage(null);
     setIsLoading(false);
   }, [flashcards, getDueFlashcards]);
 
@@ -141,8 +145,9 @@ export default function ReviewPage() {
         const earliestNextReviewTimestamp = Math.min(
           ...cardsInReviewedDeck
             .map(fc => {
-              const date = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
-              return !isNaN(date.getTime()) ? date.getTime() : Infinity;
+              // Ensure fc.nextReviewDate is a Date object or a valid date string
+              const dateValue = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
+              return !isNaN(dateValue.getTime()) ? dateValue.getTime() : Infinity;
             })
             .filter(ts => ts !== Infinity) 
         );
@@ -198,7 +203,7 @@ export default function ReviewPage() {
 
   const handleReviewThisDeckAgain = () => {
     if (selectedDeck) {
-      startReviewSession(selectedDeck, true); 
+      startReviewSession(selectedDeck, true); // reviewAll is true here
     }
   };
 
@@ -216,7 +221,7 @@ export default function ReviewPage() {
       setDeckToDelete(null);
       if (selectedDeck && selectedDeck.id === deckToDelete.id) {
         setSelectedDeck(null); 
-        loadAvailableDecks(); // Reload available decks as current selection is gone
+        loadAvailableDecks(); 
       } else {
         loadAvailableDecks();
       }
@@ -259,8 +264,8 @@ export default function ReviewPage() {
       );
     }
     return (
-      <div className="container mx-auto px-4 py-8 max-w-md space-y-6">
-        <Card className="shadow-xl bg-card text-card-foreground">
+      <div className="container mx-auto px-4 py-8">
+        <Card className="shadow-xl bg-card text-card-foreground max-w-md mx-auto">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl sm:text-3xl font-bold flex items-center justify-center">
               <Library className="mr-3 h-7 w-7 sm:h-8 sm:w-8 text-primary" />
@@ -295,7 +300,7 @@ export default function ReviewPage() {
                       size="icon" 
                       onClick={(e) => { e.stopPropagation(); handleDeleteDeck(deck);}}
                       aria-label={`Delete deck ${deck.name}`}
-                      className="h-10 w-10 sm:h-auto sm:w-auto sm:px-3 sm:py-6 flex-shrink-0" // Added flex-shrink-0
+                      className="h-10 w-10 sm:h-auto sm:w-auto sm:px-3 sm:py-6 flex-shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -334,7 +339,7 @@ export default function ReviewPage() {
             </CardFooter>
           )}
         </Card>
-        <div className="text-center">
+        <div className="text-center mt-6">
             <Button variant="ghost" asChild>
                 <Link href="/">Back to Dashboard</Link>
             </Button>
@@ -345,8 +350,8 @@ export default function ReviewPage() {
 
   if (sessionCompleted) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center max-w-lg">
-        <Card className="bg-card text-card-foreground shadow-xl p-6 sm:p-8">
+      <div className="container mx-auto px-4 py-8 text-center">
+        <Card className="bg-card text-card-foreground shadow-xl p-6 sm:p-8 max-w-lg mx-auto">
           <CheckCircle className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-green-500 mb-6" />
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Deck Review Complete!</h2>
           <p className="text-md sm:text-lg text-muted-foreground mb-6">
@@ -378,8 +383,8 @@ export default function ReviewPage() {
 
   if (!currentCard && selectedDeck && cardsForReviewSession.length === 0 && !isLoading && flashcardsLoaded) {
      return (
-      <div className="container mx-auto px-4 py-8 text-center max-w-lg">
-        <Card className="bg-card text-card-foreground shadow-xl p-6 sm:p-8">
+      <div className="container mx-auto px-4 py-8 text-center">
+        <Card className="bg-card text-card-foreground shadow-xl p-6 sm:p-8 max-w-lg mx-auto">
             <Zap className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-primary mb-6" />
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">All Caught Up in "{selectedDeck.name}"!</h2>
             <p className="text-md sm:text-lg text-muted-foreground mb-8">
@@ -435,3 +440,4 @@ export default function ReviewPage() {
     </div>
   );
 }
+
