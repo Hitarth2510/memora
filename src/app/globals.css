@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 94.1%; /* Light Grey #F0F0F0 */
+    --background: 0 0% 94.1%; /* Light Grey #F0F0F0 - Not used if dark mode default */
     --foreground: 240 10% 3.9%; /* Default Dark */
 
     /* Light theme card is solid white */
@@ -43,33 +43,32 @@
   }
 
   .dark {
-    --background: 0 0% 3.9%; /* Solid dark background */
-    --foreground: 0 0% 98%;
+    --background: 222 47% 11%; /* Dark Blue-Gray e.g. #111827 */
+    --foreground: 0 0% 98%; /* Light Gray e.g. #FAFAFA */
 
-    /* Dark theme card - solid dark color */
-    --card: 220 10% 10%; /* Solid Dark Blue-Grey, slightly darker */
-    --card-foreground: 0 0% 98%;
+    --card: 220 30% 12%; /* Slightly lighter dark blue-gray for cards e.g. #1F2937 */
+    --card-foreground: 0 0% 95%; /* Off-white for card text e.g. #F3F4F6 */
     
-    --popover: 220 10% 12%; /* Popovers can be a bit more opaque */
+    --popover: 220 30% 10%; /* Darker popover e.g. #171E2A */
     --popover-foreground: 0 0% 98%;
     
-    --primary: 207 87% 68%; /* Calm Blue #64B5F6 */
-    --primary-foreground: 240 5.9% 10%; /* Dark text on blue for dark mode */
+    --primary: 207 87% 68%; /* Calm Blue #64B5F6 - kept same, good contrast */
+    --primary-foreground: 222 47% 11%; /* Dark text on blue for dark mode primary buttons */
     
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 20% 20%; /* Darker secondary e.g. #2B3648 */
+    --secondary-foreground: 0 0% 90%; /* Lighter gray for secondary text */
     
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted: 220 15% 25%; /* Muted dark e.g. #374151 */
+    --muted-foreground: 0 0% 63.9%; /* Lighter muted text e.g. #A0AEC0 */
     
-    --accent: 125 39% 75.1%; /* Soft Green #A5D6A7 */
+    --accent: 125 50% 60%; /* Adjusted Soft Green for better dark mode pop e.g. #81C784 */
     --accent-foreground: 0 0% 98%; /* Light text for dark mode accent */
     
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 70% 50%; /* Saturated red for dark mode e.g. #E53E3E */
     --destructive-foreground: 0 0% 98%;
     
-    --border: 0 0% 25%; /* Slightly lighter border for dark mode cards */
-    --input: 0 0% 14.9%;
+    --border: 220 15% 30%; /* Border for cards etc. e.g. #4B5563 */
+    --input: 220 15% 22%; /* Darker input background e.g. #2D3748 */
     --ring: 207 87% 68%; /* Match primary for focus rings */
     
     --chart-1: 220 70% 50%;
@@ -89,3 +88,9 @@
   }
 }
 
+/* Custom radial gradient for hero section shine */
+@layer utilities {
+  .bg-radial-gradient-blue {
+    background-image: radial-gradient(ellipse at center, hsl(var(--primary) / 0.5) 0%, transparent 70%);
+  }
+}
