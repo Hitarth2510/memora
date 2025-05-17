@@ -90,7 +90,7 @@ export default function ReviewPage() {
       setCurrentCardIndex(prev => prev + 1);
     } else {
       setSessionCompleted(true);
-      if (dueCards.length > 0 && isStreakLoaded && (cardsReviewedThisSession + 1) > 0) { 
+      if (dueCards.length > 0 && isStreakLoaded && cardsReviewedThisSession > 0) { 
         recordReviewSession();
       }
     }
@@ -108,12 +108,18 @@ export default function ReviewPage() {
         
         let message = "";
         const today = new Date();
-        today.setHours(0,0,0,0);
-        const reviewDay = new Date(earliestNextReviewDate);
-        reviewDay.setHours(0,0,0,0);
+        today.setHours(0,0,0,0); // For day comparison
+        const reviewDayDateOnly = new Date(earliestNextReviewDate);
+        reviewDayDateOnly.setHours(0,0,0,0); // For day comparison
 
-        if (reviewDay <= today || isToday(earliestNextReviewDate)) {
-          message = "Some cards are due again soon, possibly today!";
+        if (isToday(earliestNextReviewDate)) {
+          message = "Next review for this deck is today. Great job keeping up!";
+        } else if (reviewDayDateOnly < today) { 
+           // This case implies the earliest card is still scheduled for a past date.
+           // This might happen if not all cards were reviewed or if there's a slight delay in state updates.
+           // Or if a card's interval became 0 and date calculation landed it slightly in past due to timezones/DST.
+           // SM-2 usually results in next review >= today.
+          message = `Some cards in this deck are due. The earliest is scheduled for ${format(earliestNextReviewDate, 'MMMM d, yyyy')}.`;
         } else if (isTomorrow(earliestNextReviewDate)) {
           message = "Next review for this deck is tomorrow.";
         } else {
@@ -134,8 +140,8 @@ export default function ReviewPage() {
   
   const handleReviewAnotherDeck = () => {
     setSelectedDeck(null); 
-    setSessionCompleted(false); // Reset session completion state
-    setNextReviewMessage(null); // Reset next review message
+    setSessionCompleted(false); 
+    setNextReviewMessage(null); 
   };
 
   const handleDeleteDeck = (deck: DeckInfo) => {
@@ -150,7 +156,7 @@ export default function ReviewPage() {
         description: `The deck "${deckToDelete.name}" has been removed.`,
       });
       setDeckToDelete(null);
-      setSelectedDeck(null); // This will trigger loadAvailableDecks via useEffect
+      setSelectedDeck(null); 
     }
   };
 
@@ -383,3 +389,4 @@ export default function ReviewPage() {
     </div>
   );
 }
+
