@@ -218,7 +218,7 @@ export default function ReviewPage() {
           </CardContent>
           {availableDecks.length > 0 && (
             <CardFooter>
-               <Alert className="bg-secondary/30 text-secondary-foreground border-border">
+               <Alert className="bg-muted text-muted-foreground border-border">
                   <Info className="h-4 w-4" />
                   <AlertTitle>Review Tip</AlertTitle>
                   <AlertDescription>
@@ -326,5 +326,3 @@ export default function ReviewPage() {
     </div>
   );
 }
-
-    

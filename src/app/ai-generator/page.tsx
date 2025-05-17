@@ -130,14 +130,14 @@ export default function AiGeneratorPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {generatedCards.map((card, index) => (
-              <Card key={index} className="bg-secondary/30">
+              <Card key={index} className="bg-muted text-muted-foreground">
                 <CardContent className="p-4 space-y-2">
                   <div>
-                    <p className="font-semibold text-sm text-muted-foreground">Question (Front):</p>
+                    <p className="font-semibold text-sm text-card-foreground">Question (Front):</p>
                     <p>{card.question}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-muted-foreground">Answer (Back):</p>
+                    <p className="font-semibold text-sm text-card-foreground">Answer (Back):</p>
                     <p>{card.answer}</p>
                   </div>
                 </CardContent>
@@ -173,5 +173,3 @@ export default function AiGeneratorPage() {
     </div>
   );
 }
-
-    
