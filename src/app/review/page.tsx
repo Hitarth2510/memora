@@ -6,15 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { FlashcardDisplay } from '@/components/FlashcardDisplay';
 import { useFlashcards } from '@/hooks/useFlashcards';
-import { useReviewStreak } from '@/hooks/useReviewStreak'; // Import the streak hook
+import { useReviewStreak } from '@/hooks/useReviewStreak';
 import type { Flashcard, DeckInfo } from '@/lib/types';
-import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 export default function ReviewPage() {
-  const { getDueFlashcards, updateFlashcardReview, getDecksWithDueCards, isLoaded: flashcardsLoaded } = useFlashcards();
-  const { recordReviewSession, isStreakLoaded } = useReviewStreak(); // Use the streak hook
+  const { getDueFlashcards, updateFlashcardReview, getDecksWithDueCards, deleteDeck, isLoaded: flashcardsLoaded } = useFlashcards();
+  const { recordReviewSession, isStreakLoaded } = useReviewStreak();
+  const { toast } = useToast();
   
   const [availableDecks, setAvailableDecks] = useState<DeckInfo[]>([]);
   const [selectedDeck, setSelectedDeck] = useState<DeckInfo | null>(null);
@@ -24,16 +37,20 @@ export default function ReviewPage() {
   const [sessionCompleted, setSessionCompleted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [cardsReviewedThisSession, setCardsReviewedThisSession] = useState(0);
+  const [deckToDelete, setDeckToDelete] = useState<DeckInfo | null>(null);
 
-  useEffect(() => {
-    if (flashcardsLoaded) {
+  const loadAvailableDecks = useCallback(() => {
+     if (flashcardsLoaded) {
       const decks = getDecksWithDueCards();
       setAvailableDecks(decks);
       setIsLoading(false);
     }
   }, [flashcardsLoaded, getDecksWithDueCards]);
 
-  // Reset state when selectedDeck changes or when returning to deck selection
+  useEffect(() => {
+    loadAvailableDecks();
+  }, [loadAvailableDecks]);
+
   useEffect(() => {
     if (selectedDeck) {
       setIsLoading(true);
@@ -45,12 +62,11 @@ export default function ReviewPage() {
       setCardsReviewedThisSession(0);
       setIsLoading(false);
     } else {
-      // Refresh available decks when no deck is selected (e.g., after completing a session)
       if (flashcardsLoaded) {
-         setAvailableDecks(getDecksWithDueCards());
+         loadAvailableDecks();
       }
     }
-  }, [selectedDeck, getDueFlashcards, flashcardsLoaded]);
+  }, [selectedDeck, getDueFlashcards, flashcardsLoaded, loadAvailableDecks]);
 
 
   const currentCard = dueCards[currentCardIndex];
@@ -60,16 +76,15 @@ export default function ReviewPage() {
   const handleAnswer = useCallback((knewIt: boolean) => {
     if (!currentCard) return;
 
-    const quality = knewIt ? 5 : 2; // SM-2 quality score (5 = perfect, 2 = incorrect, show soon)
+    const quality = knewIt ? 5 : 2;
     updateFlashcardReview(currentCard.id, quality);
     setCardsReviewedThisSession(prev => prev + 1);
 
-    setIsFlipped(false); // Flip back to front for next card
+    setIsFlipped(false);
     if (currentCardIndex < dueCards.length - 1) {
       setCurrentCardIndex(prev => prev + 1);
     } else {
       setSessionCompleted(true);
-      // Only record streak if at least one card was reviewed and streak hook is loaded
       if (dueCards.length > 0 && isStreakLoaded && cardsReviewedThisSession > 0) { 
         recordReviewSession();
       }
@@ -81,12 +96,28 @@ export default function ReviewPage() {
   };
   
   const handleReviewAnotherDeck = () => {
-    setSelectedDeck(null); // This will trigger the useEffect to reset state and show deck selection
-    // The useEffect for selectedDeck being null will also refresh availableDecks
+    setSelectedDeck(null); 
+  };
+
+  const handleDeleteDeck = (deck: DeckInfo) => {
+    setDeckToDelete(deck);
+  };
+
+  const confirmDeleteDeck = () => {
+    if (deckToDelete) {
+      deleteDeck(deckToDelete.id);
+      toast({
+        title: "Deck Deleted",
+        description: `The deck "${deckToDelete.name}" has been removed.`,
+      });
+      setDeckToDelete(null);
+      setSelectedDeck(null); // Go back to deck selection
+      loadAvailableDecks(); // Refresh deck list
+    }
   };
 
 
-  if (isLoading && (!selectedDeck || (selectedDeck && dueCards.length === 0 && !sessionCompleted))) {
+  if (isLoading && !flashcardsLoaded) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -100,15 +131,18 @@ export default function ReviewPage() {
       return (
         <div className="text-center max-w-lg mx-auto py-12">
           <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
-          <h2 className="text-4xl font-bold mb-4">All Caught Up!</h2>
+          <h2 className="text-4xl font-bold mb-4">No Decks Available!</h2>
           <p className="text-lg text-muted-foreground mb-8">
-            You have no flashcards due for review in any deck right now. Nicely done!
+            You don't have any flashcard decks yet, or no cards are due for review.
           </p>
           <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
             <Button size="lg" asChild>
-              <Link href="/create">Create More Cards</Link>
+              <Link href="/create">Create Your First Deck</Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+             <Button size="lg" variant="outline" asChild>
+              <Link href="/decks">Browse Preloaded Decks</Link>
+            </Button>
+            <Button size="lg" variant="ghost" asChild>
               <Link href="/">Go Home</Link>
             </Button>
           </div>
@@ -123,25 +157,58 @@ export default function ReviewPage() {
               <Library className="mr-3 h-8 w-8 text-primary" />
               Select Deck to Review
             </CardTitle>
-            <CardDescription>Choose a deck that has cards due for review.</CardDescription>
+            <CardDescription>Choose a deck. Decks with due cards are prioritized.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {availableDecks.length > 0 ? availableDecks.map(deck => (
-              <Button 
-                key={deck.id} 
-                variant="outline" 
-                className="w-full justify-between py-6 text-lg hover:bg-primary/10"
-                onClick={() => handleSelectDeck(deck)}
-                aria-label={`Review ${deck.name}, ${deck.dueCardCount} cards due`}
-              >
-                <span>{deck.name}</span>
-                <span className="text-sm text-primary font-semibold bg-primary/20 px-3 py-1 rounded-full">
-                  {deck.dueCardCount} due
-                </span>
-              </Button>
+              <div key={deck.id} className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-between py-6 text-lg hover:bg-primary/10 flex-grow"
+                  onClick={() => handleSelectDeck(deck)}
+                  aria-label={`Review ${deck.name}, ${deck.dueCardCount} cards due`}
+                >
+                  <span>{deck.name}</span>
+                  {deck.dueCardCount > 0 ? (
+                    <span className="text-sm text-primary font-semibold bg-primary/20 px-3 py-1 rounded-full">
+                      {deck.dueCardCount} due
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground font-normal bg-muted/50 px-3 py-1 rounded-full">
+                      No cards due
+                    </span>
+                  )}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      onClick={(e) => { e.stopPropagation(); handleDeleteDeck(deck);}}
+                      aria-label={`Delete deck ${deck.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                   {deckToDelete && deckToDelete.id === deck.id && (
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to delete this deck?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action will permanently delete the deck "{deckToDelete?.name}" and all its flashcards. This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setDeckToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDeleteDeck}>Delete Deck</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  )}
+                </AlertDialog>
+              </div>
             )) : (
                 <p className="text-muted-foreground text-center py-4">
-                    {flashcardsLoaded ? "No decks have cards due for review currently." : "Loading available decks..."}
+                    {flashcardsLoaded ? "No decks found. Create some or add preloaded ones!" : "Loading available decks..."}
                 </p>
             )}
           </CardContent>
@@ -151,7 +218,7 @@ export default function ReviewPage() {
                   <Info className="h-4 w-4" />
                   <AlertTitle>Review Tip</AlertTitle>
                   <AlertDescription>
-                   Only decks with cards due today will appear here. Keep creating and reviewing!
+                   Select a deck to start your review. Decks with due cards are highlighted.
                   </AlertDescription>
               </Alert>
             </CardFooter>
@@ -185,7 +252,6 @@ export default function ReviewPage() {
     );
   }
 
-  // This case handles when a deck is selected, but it has no due cards (e.g., just added or all caught up)
   if (!currentCard && selectedDeck && dueCards.length === 0 && !isLoading && flashcardsLoaded) {
      return (
       <div className="text-center max-w-lg mx-auto py-12">
@@ -203,7 +269,6 @@ export default function ReviewPage() {
       </div>
     );
   }
-
 
   return (
     <div className="flex flex-col items-center space-y-6 max-w-xl mx-auto">
@@ -254,4 +319,3 @@ export default function ReviewPage() {
     </div>
   );
 }
-

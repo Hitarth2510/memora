@@ -19,7 +19,6 @@ export function useFlashcards() {
         try {
           const parsedFlashcards: Flashcard[] = JSON.parse(storedFlashcards).map((card: any) => ({
             ...card,
-            // Ensure deckId and deckName have default values if missing from old storage
             deckId: card.deckId || 'user-created', 
             deckName: card.deckName || 'My Custom Cards',
             nextReviewDate: new Date(card.nextReviewDate),
@@ -134,6 +133,14 @@ export function useFlashcards() {
         dueCardsByDeck[card.deckId].count += 1;
       }
     });
+    
+    // Include decks that have no due cards but exist
+     flashcards.forEach(card => {
+        if (!dueCardsByDeck[card.deckId]) {
+            dueCardsByDeck[card.deckId] = { name: card.deckName, count: 0};
+        }
+    });
+
 
     return Object.entries(dueCardsByDeck).map(([id, { name, count }]) => ({
       id,
@@ -146,5 +153,9 @@ export function useFlashcards() {
     setFlashcards(prev => prev.filter(card => card.id !== cardId));
   }, []);
 
-  return { flashcards, addFlashcard, updateFlashcardReview, getDueFlashcards, getDecksWithDueCards, deleteFlashcard, isLoaded };
+  const deleteDeck = useCallback((deckIdToDelete: string) => {
+    setFlashcards(prev => prev.filter(card => card.deckId !== deckIdToDelete));
+  }, []);
+
+  return { flashcards, addFlashcard, updateFlashcardReview, getDueFlashcards, getDecksWithDueCards, deleteFlashcard, deleteDeck, isLoaded };
 }
