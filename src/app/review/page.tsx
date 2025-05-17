@@ -5,10 +5,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { FlashcardDisplay } from '@/components/FlashcardDisplay';
+import { RecallRating } from '@/components/RecallRating';
 import { useFlashcards } from '@/hooks/useFlashcards';
 import { useReviewStreak } from '@/hooks/useReviewStreak';
 import type { Flashcard, DeckInfo } from '@/lib/types';
-import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info, Trash2, CalendarClock } from 'lucide-react';
+import { CheckCircle, Zap, Loader2, Library, Info, Trash2, CalendarClock, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import {
@@ -55,44 +56,58 @@ export default function ReviewPage() {
     loadAvailableDecks();
   }, [loadAvailableDecks]);
 
+  const startReviewSession = useCallback((deck: DeckInfo, reviewAll: boolean = false) => {
+    setIsLoading(true);
+    let cardsToReview: Flashcard[];
+    if (reviewAll) {
+      cardsToReview = flashcards.filter(fc => fc.deckId === deck.id);
+    } else {
+      cardsToReview = getDueFlashcards(deck.id);
+    }
+    
+    // Sort cards to review by their current next review date for consistency, or by creation if no review date
+    cardsToReview.sort((a, b) => {
+      const dateA = a.nextReviewDate ? new Date(a.nextReviewDate).getTime() : 0;
+      const dateB = b.nextReviewDate ? new Date(b.nextReviewDate).getTime() : 0;
+      return dateA - dateB;
+    });
+
+    setDueCards(cardsToReview);
+    setCurrentCardIndex(0);
+    setIsFlipped(false);
+    setSessionCompleted(false);
+    setCardsReviewedThisSession(0);
+    setNextReviewMessage(null);
+    setIsLoading(false);
+  }, [flashcards, getDueFlashcards]);
+
+
   useEffect(() => {
     if (selectedDeck) {
-      setIsLoading(true);
-      const currentDueCards = getDueFlashcards(selectedDeck.id);
-      setDueCards(currentDueCards);
-      setCurrentCardIndex(0);
-      setIsFlipped(false);
-      setSessionCompleted(false);
-      setCardsReviewedThisSession(0);
-      setNextReviewMessage(null);
-      setIsLoading(false);
+      startReviewSession(selectedDeck, false); // Start with due cards by default
     } else {
       if (flashcardsLoaded) {
          loadAvailableDecks();
       }
     }
-  }, [selectedDeck, getDueFlashcards, flashcardsLoaded, loadAvailableDecks]);
+  }, [selectedDeck, flashcardsLoaded, loadAvailableDecks, startReviewSession]);
 
 
   const currentCard = dueCards[currentCardIndex];
 
   const handleFlip = () => setIsFlipped(prev => !prev);
 
-  const handleAnswer = useCallback((knewIt: boolean) => {
+  const handleRateCard = useCallback((quality: number) => {
     if (!currentCard) return;
 
-    const quality = knewIt ? 5 : 2; // 5 for "know", 2 for "don't know"
     updateFlashcardReview(currentCard.id, quality);
     setCardsReviewedThisSession(prev => prev + 1);
 
-    setIsFlipped(false);
+    setIsFlipped(false); // Flip back or move to next card state
     if (currentCardIndex < dueCards.length - 1) {
       setCurrentCardIndex(prev => prev + 1);
     } else {
       setSessionCompleted(true);
-      // Note: cardsReviewedThisSession state update might be async.
-      // For streak logic, it's better to use the direct count if needed immediately.
-      // However, the current recordReviewSession in the hook doesn't rely on this count directly from param.
       if (dueCards.length > 0 && isStreakLoaded) { 
         recordReviewSession();
       }
@@ -106,9 +121,17 @@ export default function ReviewPage() {
       
       if (cardsInReviewedDeck.length > 0) {
         const earliestNextReviewTimestamp = Math.min(
-          ...cardsInReviewedDeck.map(fc => new Date(fc.nextReviewDate).getTime())
+          ...cardsInReviewedDeck.map(fc => {
+            const date = new Date(fc.nextReviewDate);
+            return !isNaN(date.getTime()) ? date.getTime() : Infinity;
+          }).filter(ts => ts !== Infinity)
         );
         
+        if (earliestNextReviewTimestamp === Infinity) {
+           setNextReviewMessage("Could not determine the next review time for this deck. All cards might be new or have invalid dates.");
+           return;
+        }
+
         const earliestNextReviewDate = new Date(earliestNextReviewTimestamp);
 
         if (isNaN(earliestNextReviewDate.getTime())) {
@@ -124,9 +147,9 @@ export default function ReviewPage() {
         reviewDayDateOnly.setHours(0,0,0,0);
 
         if (isToday(earliestNextReviewDate)) {
-          message = "The earliest next review for this deck is later today or some cards might need immediate attention. Great job keeping up!";
+          message = "The earliest next review for this deck is later today. Some cards might need immediate attention. Great job keeping up!";
         } else if (reviewDayDateOnly < today) { 
-          message = `Some cards in this deck are due. The earliest is scheduled for ${format(earliestNextReviewDate, 'MMMM d, yyyy')}. Consider reviewing soon.`;
+          message = `Some cards in this deck are overdue. The earliest is scheduled for ${format(earliestNextReviewDate, 'MMMM d, yyyy')}. Consider reviewing soon.`;
         } else if (isTomorrow(earliestNextReviewDate)) {
           message = "Next review for this deck is tomorrow.";
         } else {
@@ -151,6 +174,12 @@ export default function ReviewPage() {
     setNextReviewMessage(null); 
   };
 
+  const handleReviewThisDeckAgain = () => {
+    if (selectedDeck) {
+      startReviewSession(selectedDeck, true); // Review all cards in the deck
+    }
+  };
+
   const handleDeleteDeck = (deck: DeckInfo) => {
     setDeckToDelete(deck);
   };
@@ -163,15 +192,14 @@ export default function ReviewPage() {
         description: `The deck "${deckToDelete.name}" has been removed.`,
       });
       setDeckToDelete(null);
-      setSelectedDeck(null); // Go back to deck selection
-      // availableDecks will update via its own useEffect chain
+      setSelectedDeck(null); 
     }
   };
 
 
   if (isLoading && !flashcardsLoaded) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+      <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <p className="text-xl text-muted-foreground">Loading review session...</p>
       </div>
@@ -181,7 +209,7 @@ export default function ReviewPage() {
   if (!selectedDeck) {
      if (availableDecks.length === 0 && !isLoading && flashcardsLoaded) {
       return (
-        <div className="text-center max-w-lg mx-auto py-12">
+        <div className="container mx-auto px-4 py-8 text-center max-w-lg">
           <Card className="bg-card text-card-foreground shadow-xl p-8">
             <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
             <h2 className="text-4xl font-bold mb-4">No Decks Available!</h2>
@@ -204,7 +232,7 @@ export default function ReviewPage() {
       );
     }
     return (
-      <div className="max-w-md mx-auto space-y-6 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-md space-y-6">
         <Card className="shadow-xl bg-card text-card-foreground">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold flex items-center justify-center">
@@ -289,12 +317,12 @@ export default function ReviewPage() {
 
   if (sessionCompleted) {
     return (
-      <div className="text-center max-w-lg mx-auto py-12">
+      <div className="container mx-auto px-4 py-8 text-center max-w-lg">
         <Card className="bg-card text-card-foreground shadow-xl p-8">
           <CheckCircle className="mx-auto h-20 w-20 text-green-500 mb-6" />
           <h2 className="text-4xl font-bold mb-4">Deck Review Complete!</h2>
           <p className="text-lg text-muted-foreground mb-6">
-            Great job! You've reviewed all {cardsReviewedThisSession} due cards for "{selectedDeck?.name}".
+            Great job! You've reviewed {cardsReviewedThisSession} {cardsReviewedThisSession === 1 ? 'card' : 'cards'} for "{selectedDeck?.name}".
             {isStreakLoaded && cardsReviewedThisSession > 0 ? " Your review streak has been updated!" : ""}
           </p>
           {nextReviewMessage && (
@@ -307,6 +335,9 @@ export default function ReviewPage() {
               </Alert>
           )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={handleReviewThisDeckAgain} variant="secondary">
+                <RotateCcw className="mr-2 h-5 w-5" /> Review This Deck Again
+              </Button>
               <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/">Back to Dashboard</Link>
@@ -319,7 +350,7 @@ export default function ReviewPage() {
 
   if (!currentCard && selectedDeck && dueCards.length === 0 && !isLoading && flashcardsLoaded) {
      return (
-      <div className="text-center max-w-lg mx-auto py-12">
+      <div className="container mx-auto px-4 py-8 text-center max-w-lg">
         <Card className="bg-card text-card-foreground shadow-xl p-8">
             <Zap className="mx-auto h-20 w-20 text-primary mb-6" />
             <h2 className="text-4xl font-bold mb-4">All Caught Up in "{selectedDeck.name}"!</h2>
@@ -327,6 +358,9 @@ export default function ReviewPage() {
               You have no flashcards due for review in this deck right now.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={handleReviewThisDeckAgain} variant="secondary">
+                <RotateCcw className="mr-2 h-5 w-5" /> Review This Deck Again
+              </Button>
               <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/">Go Home</Link>
@@ -338,7 +372,7 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-6 max-w-xl mx-auto">
+    <div className="container mx-auto px-4 py-8 flex flex-col items-center space-y-6 max-w-xl">
       <Card className="w-full shadow-none border-none bg-transparent text-center">
         <CardHeader className="pb-2">
           <CardTitle className="text-3xl font-semibold">Review: {selectedDeck?.name}</CardTitle>
@@ -359,20 +393,8 @@ export default function ReviewPage() {
           />
 
           {isFlipped && (
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-6 w-full">
-              <Button
-                onClick={() => handleAnswer(false)}
-                variant="destructive"
-                className="text-lg py-6 px-8 flex-1 shadow-md hover:shadow-lg"
-              >
-                <ThumbsDown className="mr-2 h-5 w-5" /> I Didn't Know
-              </Button>
-              <Button
-                onClick={() => handleAnswer(true)}
-                className="text-lg py-6 px-8 flex-1 shadow-md hover:shadow-lg bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                <ThumbsUp className="mr-2 h-5 w-5" /> I Knew It!
-              </Button>
+            <div className="mt-6 w-full">
+              <RecallRating onRate={handleRateCard} />
             </div>
           )}
         </>
@@ -385,3 +407,6 @@ export default function ReviewPage() {
     </div>
   );
 }
+
+
+    
