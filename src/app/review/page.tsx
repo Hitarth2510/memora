@@ -8,7 +8,7 @@ import { FlashcardDisplay } from '@/components/FlashcardDisplay';
 import { useFlashcards } from '@/hooks/useFlashcards';
 import { useReviewStreak } from '@/hooks/useReviewStreak';
 import type { Flashcard, DeckInfo } from '@/lib/types';
-import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info, Trash2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, CheckCircle, Zap, Loader2, Library, Info, Trash2, CalendarClock } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import {
@@ -23,9 +23,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { format, formatDistanceToNowStrict, isToday, isTomorrow } from 'date-fns';
+
 
 export default function ReviewPage() {
-  const { getDueFlashcards, updateFlashcardReview, getDecksWithDueCards, deleteDeck, isLoaded: flashcardsLoaded } = useFlashcards();
+  const { flashcards, getDueFlashcards, updateFlashcardReview, getDecksWithDueCards, deleteDeck, isLoaded: flashcardsLoaded } = useFlashcards();
   const { recordReviewSession, isStreakLoaded } = useReviewStreak();
   const { toast } = useToast();
   
@@ -38,6 +40,8 @@ export default function ReviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [cardsReviewedThisSession, setCardsReviewedThisSession] = useState(0);
   const [deckToDelete, setDeckToDelete] = useState<DeckInfo | null>(null);
+  const [nextReviewMessage, setNextReviewMessage] = useState<string | null>(null);
+
 
   const loadAvailableDecks = useCallback(() => {
      if (flashcardsLoaded) {
@@ -60,6 +64,7 @@ export default function ReviewPage() {
       setIsFlipped(false);
       setSessionCompleted(false);
       setCardsReviewedThisSession(0);
+      setNextReviewMessage(null);
       setIsLoading(false);
     } else {
       if (flashcardsLoaded) {
@@ -76,7 +81,7 @@ export default function ReviewPage() {
   const handleAnswer = useCallback((knewIt: boolean) => {
     if (!currentCard) return;
 
-    const quality = knewIt ? 5 : 2;
+    const quality = knewIt ? 5 : 2; // 5 for "know", 2 for "don't know"
     updateFlashcardReview(currentCard.id, quality);
     setCardsReviewedThisSession(prev => prev + 1);
 
@@ -85,12 +90,43 @@ export default function ReviewPage() {
       setCurrentCardIndex(prev => prev + 1);
     } else {
       setSessionCompleted(true);
-      // Check cardsReviewedThisSession as well to ensure a review actually happened
       if (dueCards.length > 0 && isStreakLoaded && (cardsReviewedThisSession + 1) > 0) { 
         recordReviewSession();
       }
     }
   }, [currentCard, currentCardIndex, dueCards.length, updateFlashcardReview, recordReviewSession, isStreakLoaded, cardsReviewedThisSession]);
+
+  // Effect for calculating next review message
+  useEffect(() => {
+    if (sessionCompleted && selectedDeck && flashcards) {
+      const cardsInReviewedDeck = flashcards.filter(fc => fc.deckId === selectedDeck.id);
+      if (cardsInReviewedDeck.length > 0) {
+        const earliestNextReviewTimestamp = Math.min(
+          ...cardsInReviewedDeck.map(fc => new Date(fc.nextReviewDate).getTime())
+        );
+        const earliestNextReviewDate = new Date(earliestNextReviewTimestamp);
+        
+        let message = "";
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const reviewDay = new Date(earliestNextReviewDate);
+        reviewDay.setHours(0,0,0,0);
+
+        if (reviewDay <= today || isToday(earliestNextReviewDate)) {
+          message = "Some cards are due again soon, possibly today!";
+        } else if (isTomorrow(earliestNextReviewDate)) {
+          message = "Next review for this deck is tomorrow.";
+        } else {
+          const distance = formatDistanceToNowStrict(earliestNextReviewDate, { addSuffix: true });
+          message = `Next review for this deck: ${distance} (on ${format(earliestNextReviewDate, 'MMMM d, yyyy')}).`;
+        }
+        setNextReviewMessage(message);
+      } else {
+        setNextReviewMessage("No cards remaining in this deck for future review.");
+      }
+    }
+  }, [sessionCompleted, selectedDeck, flashcards]);
+
 
   const handleSelectDeck = (deck: DeckInfo) => {
     setSelectedDeck(deck);
@@ -98,7 +134,8 @@ export default function ReviewPage() {
   
   const handleReviewAnotherDeck = () => {
     setSelectedDeck(null); 
-    // No need to manually call loadAvailableDecks if selectedDeck change triggers it
+    setSessionCompleted(false); // Reset session completion state
+    setNextReviewMessage(null); // Reset next review message
   };
 
   const handleDeleteDeck = (deck: DeckInfo) => {
@@ -113,8 +150,7 @@ export default function ReviewPage() {
         description: `The deck "${deckToDelete.name}" has been removed.`,
       });
       setDeckToDelete(null);
-      setSelectedDeck(null); 
-      // loadAvailableDecks will be called by useEffect on selectedDeck change
+      setSelectedDeck(null); // This will trigger loadAvailableDecks via useEffect
     }
   };
 
@@ -209,7 +245,7 @@ export default function ReviewPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel onClick={() => setDeckToDelete(null)}>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={confirmDeleteDeck}>Delete Deck</AlertDialogAction>
+                          <AlertDialogAction onClick={confirmDeleteDeck} className="bg-destructive hover:bg-destructive/90">Delete Deck</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     )}
@@ -223,11 +259,11 @@ export default function ReviewPage() {
             </CardContent>
             {availableDecks.length > 0 && (
               <CardFooter>
-                <Alert className="bg-muted text-muted-foreground border-border">
+                 <Alert className="bg-muted text-muted-foreground border-border">
                     <Info className="h-4 w-4" />
                     <AlertTitle>Review Tip</AlertTitle>
                     <AlertDescription>
-                    Select a deck to start your review. Decks with due cards are highlighted.
+                    Select a deck to start your review. You can also delete decks using the trash icon.
                     </AlertDescription>
                 </Alert>
               </CardFooter>
@@ -250,10 +286,19 @@ export default function ReviewPage() {
           <Card className="bg-card text-card-foreground shadow-xl p-8">
             <CheckCircle className="mx-auto h-20 w-20 text-green-500 mb-6" />
             <h2 className="text-4xl font-bold mb-4">Deck Review Complete!</h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-muted-foreground mb-6">
               Great job! You've reviewed all {cardsReviewedThisSession} due cards for "{selectedDeck?.name}".
               {isStreakLoaded && cardsReviewedThisSession > 0 ? " Your review streak has been updated!" : ""}
             </p>
+            {nextReviewMessage && (
+                <Alert variant="default" className="mb-6 bg-muted text-muted-foreground border-border text-left">
+                    <CalendarClock className="h-4 w-4" />
+                    <AlertTitle>Next Steps</AlertTitle>
+                    <AlertDescription>
+                        {nextReviewMessage}
+                    </AlertDescription>
+                </Alert>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" onClick={handleReviewAnotherDeck}>Review Another Deck</Button>
                 <Button size="lg" variant="outline" asChild>

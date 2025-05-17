@@ -6,15 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useFlashcards } from '@/hooks/useFlashcards';
 import { useToast } from '@/hooks/use-toast';
 import { generateFlashcards, type GenerateFlashcardsOutput, type GenerateFlashcardsInput } from '@/ai/flows/generate-flashcards';
 import type { AiGeneratedFlashcard } from '@/lib/types';
-import { Sparkles, Loader2, PlusCircle, AlertTriangle, Info } from 'lucide-react';
+import { slugify } from '@/lib/utils';
+import { Sparkles, Loader2, PlusCircle, AlertTriangle, Info, BookMarked } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AiGeneratorPage() {
   const [notes, setNotes] = useState('');
+  const [deckName, setDeckName] = useState('AI Generated Cards');
   const [generatedCards, setGeneratedCards] = useState<AiGeneratedFlashcard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,10 +43,11 @@ export default function AiGeneratorPage() {
           description: `${result.flashcards.length} cards created by AI. Review and add them below.`,
         });
       } else {
+        setGeneratedCards([]); // Ensure it's empty
         toast({
           title: 'No Flashcards Generated',
           description: 'The AI could not generate flashcards from the provided notes. Try different or more detailed notes.',
-          variant: 'destructive',
+          variant: 'default', // Changed from destructive to default as it's not strictly an error
         });
       }
     } catch (err) {
@@ -61,24 +65,49 @@ export default function AiGeneratorPage() {
   };
 
   const handleAddCardToCollection = (card: AiGeneratedFlashcard) => {
-    addFlashcard(card.question, card.answer, "ai-generated", "AI Generated Cards"); // Assign to a default AI deck
+    if (!deckName.trim()) {
+      toast({ title: 'Deck Name Required', description: 'Please enter a name for the deck.', variant: 'destructive' });
+      return;
+    }
+    const currentDeckId = slugify(deckName);
+     if (!currentDeckId) {
+       toast({
+        title: 'Error',
+        description: 'Deck name is invalid for creating an ID. Please use alphanumeric characters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    addFlashcard(card.question, card.answer, currentDeckId, deckName.trim());
     toast({
       title: 'Card Added!',
-      description: `"${card.question.substring(0,30)}..." added to your collection.`,
+      description: `"${card.question.substring(0, 30)}..." added to '${deckName.trim()}'.`,
     });
     setGeneratedCards(prev => prev.filter(c => c.question !== card.question || c.answer !== card.answer));
   };
-  
+
   const handleAddAllCards = () => {
     if (generatedCards.length === 0) return;
-    generatedCards.forEach(card => addFlashcard(card.question, card.answer, "ai-generated", "AI Generated Cards"));
+    if (!deckName.trim()) {
+      toast({ title: 'Deck Name Required', description: 'Please enter a name for the deck before adding all cards.', variant: 'destructive' });
+      return;
+    }
+    const currentDeckId = slugify(deckName);
+    if (!currentDeckId) {
+       toast({
+        title: 'Error',
+        description: 'Deck name is invalid for creating an ID. Please use alphanumeric characters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    generatedCards.forEach(card => addFlashcard(card.question, card.answer, currentDeckId, deckName.trim()));
     toast({
       title: `${generatedCards.length} Cards Added!`,
-      description: `All AI-generated cards have been added to your collection.`,
+      description: `All AI-generated cards have been added to '${deckName.trim()}'.`,
     });
     setGeneratedCards([]);
   };
-
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -90,10 +119,22 @@ export default function AiGeneratorPage() {
               AI Flashcard Generator
             </CardTitle>
             <CardDescription>
-              Paste your notes below, and let AI create flashcards for you. These will be added to an "AI Generated Cards" deck.
+              Paste your notes, specify a deck name, and let AI create flashcards for you.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="aiDeckName" className="text-lg font-medium flex items-center">
+                <BookMarked className="mr-2 h-5 w-5 text-muted-foreground" /> Deck Name for Generated Cards
+              </Label>
+              <Input
+                id="aiDeckName"
+                value={deckName}
+                onChange={(e) => setDeckName(e.target.value)}
+                placeholder="e.g., AI Study Session - History"
+                className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
+              />
+            </div>
             <div>
               <Label htmlFor="notes" className="text-lg font-medium">Your Notes</Label>
               <Textarea
@@ -112,7 +153,7 @@ export default function AiGeneratorPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <Button onClick={handleGenerate} disabled={isLoading} className="w-full text-lg py-6">
+            <Button onClick={handleGenerate} disabled={isLoading || !notes.trim()} className="w-full text-lg py-6">
               {isLoading ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : (
@@ -126,7 +167,7 @@ export default function AiGeneratorPage() {
         {generatedCards.length > 0 && (
           <Card className="shadow-xl bg-card text-card-foreground">
             <CardHeader>
-              <CardTitle className="text-2xl">Generated Flashcards</CardTitle>
+              <CardTitle className="text-2xl">Generated Flashcards for '{deckName}'</CardTitle>
               <CardDescription>Review the cards and add them to your collection.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -147,6 +188,7 @@ export default function AiGeneratorPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleAddCardToCollection(card)}
+                      disabled={!deckName.trim()}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" /> Add to My Flashcards
                     </Button>
@@ -155,20 +197,24 @@ export default function AiGeneratorPage() {
               ))}
             </CardContent>
             <CardFooter>
-              <Button onClick={handleAddAllCards} className="w-full" disabled={generatedCards.length === 0}>
+              <Button 
+                onClick={handleAddAllCards} 
+                className="w-full" 
+                disabled={generatedCards.length === 0 || !deckName.trim()}
+              >
                 <PlusCircle className="mr-2 h-4 w-4" /> Add All {generatedCards.length} Cards
               </Button>
             </CardFooter>
           </Card>
         )}
         { !isLoading && notes.length > 0 && generatedCards.length === 0 && !error && (
-          <Alert className="bg-card text-card-foreground border-border">
-              <Info className="h-4 w-4" />
-              <AlertTitle>Tip</AlertTitle>
-              <AlertDescription>
-                If no cards were generated, try providing more detailed notes or rephrasing your input.
-                The AI works best with clear statements and key facts.
-              </AlertDescription>
+          <Alert className="bg-muted text-muted-foreground border-border">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Tip</AlertTitle>
+            <AlertDescription>
+              If no cards were generated, try providing more detailed notes or rephrasing your input.
+              The AI works best with clear statements and key facts.
+            </AlertDescription>
           </Alert>
         )}
       </div>

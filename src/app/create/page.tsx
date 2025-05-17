@@ -3,24 +3,23 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useFlashcards } from '@/hooks/useFlashcards';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, CheckCircle, Image as ImageIcon, Info } from 'lucide-react';
+import { slugify } from '@/lib/utils';
+import { PlusCircle, CheckCircle, Image as ImageIcon, Info, BookMarked } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-const DEFAULT_DECK_ID = "user-created";
-const DEFAULT_DECK_NAME = "My Custom Cards";
 
 export default function CreateFlashcardPage() {
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [frontImageUrl, setFrontImageUrl] = useState('');
   const [backImageUrl, setBackImageUrl] = useState('');
+  const [deckName, setDeckName] = useState('');
   const { addFlashcard } = useFlashcards();
   const { toast } = useToast();
 
@@ -34,23 +33,44 @@ export default function CreateFlashcardPage() {
       });
       return;
     }
+    if (!deckName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please provide a name for your deck.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const currentDeckId = slugify(deckName);
+    if (!currentDeckId) {
+       toast({
+        title: 'Error',
+        description: 'Deck name is invalid for creating an ID. Please use alphanumeric characters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     addFlashcard(
-      front, 
-      back, 
-      DEFAULT_DECK_ID, 
-      DEFAULT_DECK_NAME, 
-      frontImageUrl.trim() || undefined, 
+      front,
+      back,
+      currentDeckId,
+      deckName.trim(),
+      frontImageUrl.trim() || undefined,
       backImageUrl.trim() || undefined
     );
     toast({
       title: 'Flashcard Created!',
-      description: `Your new flashcard has been added to '${DEFAULT_DECK_NAME}'.`,
+      description: `Your new flashcard has been added to '${deckName.trim()}'.`,
       action: <CheckCircle className="text-green-500" />,
     });
     setFront('');
     setBack('');
     setFrontImageUrl('');
     setBackImageUrl('');
+    // Optionally reset deckName or keep it for the next card
+    // setDeckName(''); 
   };
 
   const isValidHttpUrl = (string: string) => {
@@ -58,7 +78,7 @@ export default function CreateFlashcardPage() {
       const url = new URL(string);
       return url.protocol === "http:" || url.protocol === "https:";
     } catch (_) {
-      return false;  
+      return false;
     }
   }
 
@@ -72,12 +92,25 @@ export default function CreateFlashcardPage() {
               Create a New Flashcard
             </CardTitle>
             <CardDescription>
-              Fill in the front and back. Markdown is supported for text. You can also add image URLs.
-              Cards created here will be added to your "{DEFAULT_DECK_NAME}" deck.
+              Fill in the front, back, and assign it to a deck. Markdown is supported for text. You can also add image URLs.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="deckName" className="text-lg font-medium flex items-center">
+                  <BookMarked className="mr-2 h-5 w-5 text-muted-foreground" /> Deck Name
+                </Label>
+                <Input
+                  id="deckName"
+                  value={deckName}
+                  onChange={(e) => setDeckName(e.target.value)}
+                  placeholder="e.g., My Awesome Chemistry Deck"
+                  className="text-base bg-input text-foreground border-border placeholder-muted-foreground"
+                  required
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="front" className="text-lg font-medium">Front (Supports Markdown)</Label>
                 <Textarea
@@ -153,4 +186,3 @@ export default function CreateFlashcardPage() {
     </div>
   );
 }
-    
