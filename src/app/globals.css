@@ -5,70 +5,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 94.1%; /* Light Grey #F0F0F0 - Not used if dark mode default */
-    --foreground: 240 10% 3.9%; /* Default Dark */
+    /* Base dark theme values, closely matching slate-950/slate-900 */
+    --background: 220 30% 5%; /* Very dark blue-gray e.g. near #0A0E14 */
+    --foreground: 0 0% 95%; /* Light Gray e.g. #F3F4F6 for text */
 
-    /* Light theme card is solid white */
-    --card: 0 0% 100%; 
-    --card-foreground: 240 10% 3.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-
-    --primary: 207 87% 68%; /* Calm Blue #64B5F6 */
-    --primary-foreground: 210 40% 98%; /* White/Very Light */
-
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-
-    --accent: 125 39% 75.1%; /* Soft Green #A5D6A7 */
-    --accent-foreground: 240 10% 3.9%; /* Dark text for contrast on soft green */
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 207 87% 68%; /* Match primary for focus rings */
-
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222 47% 11%; /* Dark Blue-Gray e.g. #111827 */
-    --foreground: 0 0% 98%; /* Light Gray e.g. #FAFAFA */
-
-    --card: 220 30% 12%; /* Slightly lighter dark blue-gray for cards e.g. #1F2937 */
+    --card: 220 30% 9%; /* Slightly lighter dark blue-gray for cards e.g. #111827 or slate-900 */
     --card-foreground: 0 0% 95%; /* Off-white for card text e.g. #F3F4F6 */
     
-    --popover: 220 30% 10%; /* Darker popover e.g. #171E2A */
+    --popover: 220 30% 7%; /* Darker popover e.g. #0F131A */
     --popover-foreground: 0 0% 98%;
     
     --primary: 207 87% 68%; /* Calm Blue #64B5F6 - kept same, good contrast */
-    --primary-foreground: 222 47% 11%; /* Dark text on blue for dark mode primary buttons */
+    --primary-foreground: 222 47% 11%; /* Dark text on blue for primary buttons */
     
-    --secondary: 220 20% 20%; /* Darker secondary e.g. #2B3648 */
+    --secondary: 220 25% 15%; /* Darker secondary e.g. #1E293B or slate-800 */
     --secondary-foreground: 0 0% 90%; /* Lighter gray for secondary text */
     
-    --muted: 220 15% 25%; /* Muted dark e.g. #374151 */
+    --muted: 220 20% 20%; /* Muted dark e.g. #293344 or slate-700 */
     --muted-foreground: 0 0% 63.9%; /* Lighter muted text e.g. #A0AEC0 */
     
     --accent: 125 50% 60%; /* Adjusted Soft Green for better dark mode pop e.g. #81C784 */
-    --accent-foreground: 0 0% 98%; /* Light text for dark mode accent */
+    --accent-foreground: 240 10% 3.9%; /* Dark text for contrast on soft green */
     
     --destructive: 0 70% 50%; /* Saturated red for dark mode e.g. #E53E3E */
     --destructive-foreground: 0 0% 98%;
     
-    --border: 220 15% 30%; /* Border for cards etc. e.g. #4B5563 */
-    --input: 220 15% 22%; /* Darker input background e.g. #2D3748 */
+    --border: 220 20% 25%; /* Border for cards etc. e.g. #334155 slate-700 */
+    --input: 220 20% 18%; /* Darker input background e.g. #262F3E slate-800/700 mix */
     --ring: 207 87% 68%; /* Match primary for focus rings */
     
     --chart-1: 220 70% 50%;
@@ -76,6 +39,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --radius: 0.5rem;
   }
 }
 
@@ -85,6 +49,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Apply Geist Sans by default */
+    font-family: var(--font-geist-sans), sans-serif;
+  }
+  /* html.dark ensures that browser UI elements like scrollbars match the dark theme if the browser supports color-scheme */
+   html.dark {
+     color-scheme: dark;
   }
 }
 
