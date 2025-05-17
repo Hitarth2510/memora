@@ -2,106 +2,75 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from 'next/image'; // Keep for logo if needed, but not for features
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, PlusCircle, Sparkles, Brain, BarChart3, Edit3, Zap, Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { generateFeatureImage, type GenerateFeatureImageInput } from '@/ai/flows/generate-feature-image';
+import { ArrowRight, BookOpen, PlusCircle, Sparkles, Brain, BarChart3, Edit3, Zap, Cpu, Layers, Palette, Users, TrendingUp } from 'lucide-react';
 
-interface AppFeature {
+interface CoreFeature {
   icon: JSX.Element;
   title: string;
   description: string;
   link: string;
   linkLabel: string;
-  baseImageSrc: string; 
-  imageAlt: string;
-  imagePrompt: string; 
 }
 
-const initialAppFeatures: AppFeature[] = [
+const coreFeaturesList: CoreFeature[] = [
   {
-    icon: <Sparkles className="h-10 w-10 text-primary mb-4" />,
+    icon: <Sparkles className="h-8 w-8 text-primary" />,
     title: "AI Flashcard Generation",
-    description: "Instantly create flashcards from your notes or any topic. Let AI do the heavy lifting. Describe a concept, and watch Memora build your study materials efficiently.",
+    description: "Instantly create flashcards from your notes or any topic. Let AI do the heavy lifting and build your study materials efficiently.",
     link: "/ai-generator",
     linkLabel: "Try AI Generator",
-    baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Futuristic AI flashcard generation feature node connected to a central hub.",
-    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'AI Flashcard Generation' features a subtle brain or spark icon, linked by light blue energy lines. Minimalist, high-tech, dark gray and blue tones."
   },
   {
-    icon: <Edit3 className="h-10 w-10 text-primary mb-4" />,
-    title: "Custom Card Creation",
-    description: "Craft your own flashcards with rich text formatting using Markdown, embed images, and include code snippets for technical topics. Tailor your learning experience precisely.",
-    link: "/create",
-    linkLabel: "Create Your Cards",
-    baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Futuristic custom card creation feature node connected to a central hub.",
-    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'Custom Card Creation' features an edit or pencil icon, linked by light blue energy lines. Abstract representation of a card interface near the node. Minimalist, high-tech, dark gray and blue tones."
-  },
-  {
-    icon: <Brain className="h-10 w-10 text-primary mb-4" />,
+    icon: <Brain className="h-8 w-8 text-primary" />,
     title: "Spaced Repetition Learning",
-    description: "Master concepts effectively with the proven SM-2 algorithm. Memora intelligently schedules reviews at optimal intervals to maximize retention and build long-term memory.",
+    description: "Master concepts effectively with the proven SM-2 algorithm. Memora intelligently schedules reviews for optimal retention.",
     link: "/review",
     linkLabel: "Start Reviewing",
-    baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Futuristic spaced repetition learning feature node connected to a central hub.",
-    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'Spaced Repetition' features a calendar or upward graph icon, linked by light blue energy lines. Abstract representation of learning progression. Minimalist, high-tech, dark gray and blue tones."
   },
   {
-    icon: <BarChart3 className="h-10 w-10 text-primary mb-4" />,
+    icon: <Edit3 className="h-8 w-8 text-primary" />,
+    title: "Custom Card Creation",
+    description: "Craft your own flashcards with rich text Markdown, embed image URLs, and tailor your learning experience precisely.",
+    link: "/create",
+    linkLabel: "Create Your Cards",
+  },
+  {
+    icon: <BarChart3 className="h-8 w-8 text-primary" />,
     title: "Learning Analytics",
-    description: "Track your progress, visualize study habits, and identify areas for improvement with our insightful analytics. See your learning journey unfold through data-driven insights.",
+    description: "Track your progress, visualize study habits, and identify areas for improvement with insightful analytics.",
     link: "/analytics",
     linkLabel: "View Analytics",
-    baseImageSrc: "https://placehold.co/700x500.png",
-    imageAlt: "Futuristic learning analytics feature node connected to a central hub.",
-    imagePrompt: "Dark futuristic interface with a central glowing blue orb. A connected node labeled 'Learning Analytics' features a bar chart or data points icon, linked by light blue energy lines. Mini glowing chart elements visible. Minimalist, high-tech, dark gray and blue tones."
-  }
+  },
+  {
+    icon: <Layers className="h-8 w-8 text-primary" />,
+    title: "Preloaded Decks",
+    description: "Kickstart your learning with a variety of curated flashcard decks covering popular subjects and fundamental knowledge.",
+    link: "/decks",
+    linkLabel: "Browse Decks",
+  },
+  {
+    icon: <Cpu className="h-8 w-8 text-primary" />,
+    title: "Intuitive & Responsive",
+    description: "Enjoy a seamless experience on any device, with a clean interface designed for focused study sessions.",
+    link: "/", // General link or specific to a tour/feature page
+    linkLabel: "Learn More",
+  },
 ];
 
-const subFeatures = [
-  { icon: <Zap className="h-6 w-6 text-primary" />, label: "Intuitive Interface" },
-  { icon: <BookOpen className="h-6 w-6 text-primary" />, label: "Efficient Study" },
-  { icon: <PlusCircle className="h-6 w-6 text-primary" />, label: "Curated Decks" },
-  { icon: <BarChart3 className="h-6 w-6 text-primary" />, label: "Progress Tracking" },
+const subFeaturesBar = [
+  { icon: <Zap className="h-6 w-6 text-primary" />, label: "Efficient Study" },
+  { icon: <BookOpen className="h-6 w-6 text-primary" />, label: "Markdown Support" },
+  { icon: <Palette className="h-6 w-6 text-primary" />, label: "Sleek Dark UI" },
+  { icon: <TrendingUp className="h-6 w-6 text-primary" />, label: "Progress Tracking" },
 ];
 
 export default function HomePage() {
-  const [featureImages, setFeatureImages] = useState<Record<string, string>>({});
-  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const fetchImages = async () => {
-      for (const feature of initialAppFeatures) {
-        setLoadingImages(prev => ({ ...prev, [feature.title]: true }));
-        try {
-          const input: GenerateFeatureImageInput = { prompt: feature.imagePrompt };
-          const result = await generateFeatureImage(input);
-          if (result.imageUrl) {
-            setFeatureImages(prev => ({ ...prev, [feature.title]: result.imageUrl }));
-          } else {
-            setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc }));
-          }
-        } catch (error) {
-          console.error(`Failed to generate image for ${feature.title}:`, error);
-          setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc })); 
-        } finally {
-          setLoadingImages(prev => ({ ...prev, [feature.title]: false }));
-        }
-      }
-    };
-
-    fetchImages();
-  }, []);
-
-
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full"> {/* Ensure this parent takes full width */}
       {/* Hero Section */}
-      <section className="relative flex flex-col items-center justify-center min-h-[calc(100vh-4.5rem)] text-center px-4 py-16 bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 text-white overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center min-h-[calc(100vh-4.5rem)] text-center px-4 py-16 bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 text-white overflow-hidden w-full">
         <div className="absolute inset-0 opacity-[0.02] [background-image:radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:1.25rem_1.25rem] pointer-events-none"></div>
         
         <div 
@@ -122,59 +91,42 @@ export default function HomePage() {
         </Button>
       </section>
 
-      {/* Futuristic Features Section */}
-      <section className="py-16 md:py-24 bg-slate-950 text-white">
-        <div className="container mx-auto px-4 space-y-20 md:space-y-32">
-          {initialAppFeatures.map((feature, index) => (
-            <div 
-              key={feature.title} 
-              className={`flex flex-col md:items-center gap-10 md:gap-16 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
-            >
-              <div className="md:w-1/2 relative group">
-                <div className="absolute -inset-4 bg-primary/5 rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                <div className="relative w-full aspect-[7/5] rounded-2xl shadow-2xl border border-slate-700/50 group-hover:border-primary/30 transition-colors overflow-hidden bg-slate-800 flex items-center justify-center">
-                  {loadingImages[feature.title] && (
-                    <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                  )}
-                  {!loadingImages[feature.title] && (
-                    <Image 
-                      src={featureImages[feature.title] || feature.baseImageSrc} 
-                      alt={feature.imageAlt} 
-                      width={700} 
-                      height={500} 
-                      className="object-cover w-full h-full"
-                      unoptimized={featureImages[feature.title]?.startsWith('data:')} 
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="md:w-1/2">
-                <div className="flex items-start mb-5">
-                  <div className="p-3 bg-slate-800/70 rounded-xl mr-4 border border-slate-700 backdrop-blur-sm">
-                    {feature.icon}
+      {/* New Features Section - Grid Layout */}
+      <section className="py-16 md:py-24 bg-slate-950 text-white w-full">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold">Explore Memora's Core</h2>
+            <p className="text-slate-400 mt-3 text-lg">Powerful tools designed for effective and engaging learning.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {coreFeaturesList.map((feature) => (
+              <div 
+                key={feature.title} 
+                className="bg-slate-900/70 border border-slate-800 rounded-xl p-6 shadow-xl hover:shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1 flex flex-col group"
+              >
+                <div className="flex items-center mb-5">
+                  <div className="p-3 bg-slate-800 rounded-lg mr-4 border border-slate-700 group-hover:border-primary/50 transition-colors">
+                     {feature.icon}
                   </div>
-                  <div>
-                    <h3 className="text-3xl md:text-4xl font-bold mb-1">{feature.title}</h3>
-                    <p className="text-sm text-primary uppercase tracking-wider">Core Functionality</p>
-                  </div>
+                  <h3 className="text-xl font-semibold text-slate-100">{feature.title}</h3>
                 </div>
-                <p className="text-slate-300 leading-relaxed mb-8 text-base md:text-lg">{feature.description}</p>
-                <Button asChild variant="outline" className="text-base py-6 px-8 border-primary text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300 transform hover:scale-105">
+                <p className="text-slate-400 leading-relaxed text-sm mb-6 flex-grow">{feature.description}</p>
+                <Button asChild variant="outline" size="sm" className="mt-auto border-primary/70 text-primary/90 hover:bg-primary/10 hover:text-primary group-hover:border-primary group-hover:text-primary transition-all duration-300 w-full sm:w-auto">
                   <Link href={feature.link}>
                     {feature.linkLabel} <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
       
       {/* Sub-features bar */}
-      <section className="py-12 md:py-16 bg-slate-900 border-t border-slate-800">
+      <section className="py-12 md:py-16 bg-slate-900 border-t border-slate-800 w-full">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {subFeatures.map(sf => (
+            {subFeaturesBar.map(sf => (
               <div key={sf.label} className="flex flex-col items-center">
                 <div className="p-3 bg-slate-800/70 rounded-full mb-3 border border-slate-700 backdrop-blur-sm">
                  {sf.icon}
@@ -188,3 +140,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
