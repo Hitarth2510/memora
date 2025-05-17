@@ -5,21 +5,20 @@ export interface Flashcard {
   back: string;
   frontImageUrl?: string;
   backImageUrl?: string;
-  deckId: string; // Added to identify the deck the card belongs to
-  deckName: string; // Added for displaying deck name easily
+  deckId: string; 
+  deckName: string; 
   // SM-2 parameters
   interval: number; // in days
   repetitions: number;
-  easinessFactor: number; // EF
+  easeFactor: number; // EF - Renamed from easinessFactor
   nextReviewDate: Date;
-  lastReviewedDate?: Date;
+  lastReviewDate?: Date; // Renamed from lastReviewedDate
 }
 
 // For AI Generated Flashcards
 export interface AiGeneratedFlashcard {
   question: string;
   answer: string;
-  // deckId and deckName could be added here if AI generates for a specific deck context
 }
 
 // For Preloaded Decks

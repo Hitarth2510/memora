@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Flashcard, DeckInfo } from '@/lib/types';
 
 const FLASHCARDS_STORAGE_KEY = 'memoryForgeFlashcards';
-const INITIAL_EASINESS_FACTOR = 2.5;
-const MIN_EASINESS_FACTOR = 1.3;
+const INITIAL_EASE_FACTOR = 2.5; // Renamed from INITIAL_EASINESS_FACTOR
+const MIN_EASE_FACTOR = 1.3; // Renamed from MIN_EASINESS_FACTOR
 
 export function useFlashcards() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -22,7 +22,8 @@ export function useFlashcards() {
             deckId: card.deckId || 'user-created', 
             deckName: card.deckName || 'My Custom Cards',
             nextReviewDate: new Date(card.nextReviewDate),
-            ...(card.lastReviewedDate && { lastReviewedDate: new Date(card.lastReviewedDate) }),
+            easeFactor: card.easeFactor || INITIAL_EASE_FACTOR, // Ensure existing cards get a default if missing
+            ...(card.lastReviewDate && { lastReviewDate: new Date(card.lastReviewDate) }), // Updated field name
           }));
           setFlashcards(parsedFlashcards);
         } catch (error) {
@@ -58,7 +59,7 @@ export function useFlashcards() {
       deckName,
       interval: 0,
       repetitions: 0,
-      easinessFactor: INITIAL_EASINESS_FACTOR,
+      easeFactor: INITIAL_EASE_FACTOR,
       nextReviewDate: new Date(), 
     };
     setFlashcards(prev => [...prev, newFlashcard]);
@@ -68,8 +69,9 @@ export function useFlashcards() {
     setFlashcards(prev =>
       prev.map(card => {
         if (card.id === cardId) {
-          let { repetitions, interval, easinessFactor } = card;
+          let { repetitions, interval, easeFactor } = card; // Updated variable name
           const today = new Date();
+          today.setHours(0,0,0,0); // Ensure we work with date only for interval calculations
 
           if (quality < 3) { 
             repetitions = 0;
@@ -81,16 +83,18 @@ export function useFlashcards() {
             } else if (repetitions === 2) {
               interval = 6;
             } else {
-              interval = Math.max(1, Math.round(card.interval * easinessFactor));
+              // interval here refers to the card's current interval before this review
+              interval = Math.max(1, Math.round(card.interval * easeFactor)); 
             }
           }
           
-          easinessFactor = Math.max(MIN_EASINESS_FACTOR, easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+          // Update easeFactor using the SM-2 formula
+          easeFactor = Math.max(MIN_EASE_FACTOR, easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
           
           const nextReviewDate = new Date(today);
           nextReviewDate.setDate(today.getDate() + interval);
 
-          return { ...card, repetitions, interval, easinessFactor, nextReviewDate, lastReviewedDate: today };
+          return { ...card, repetitions, interval, easeFactor, nextReviewDate, lastReviewDate: today }; // Updated field name
         }
         return card;
       })
@@ -134,7 +138,6 @@ export function useFlashcards() {
       }
     });
     
-    // Include decks that have no due cards but exist
      flashcards.forEach(card => {
         if (!dueCardsByDeck[card.deckId]) {
             dueCardsByDeck[card.deckId] = { name: card.deckName, count: 0};
