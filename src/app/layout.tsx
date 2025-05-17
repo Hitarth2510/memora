@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Memory Forge',
-  description: 'Intelligent flashcard app for effective learning.',
+  title: 'Memora',
+  description: 'Intelligent flashcard platform for effective learning, powered by AI and spaced repetition.',
 };
 
 export default function RootLayout({
