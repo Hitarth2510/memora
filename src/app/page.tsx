@@ -4,59 +4,99 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, PlusCircle, Sparkles, Brain, BarChart3, Edit3, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, PlusCircle, Sparkles, Brain, BarChart3, Edit3, Zap, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { generateFeatureImage, type GenerateFeatureImageInput } from '@/ai/flows/generate-feature-image';
+
+interface AppFeature {
+  icon: JSX.Element;
+  title: string;
+  description: string;
+  link: string;
+  linkLabel: string;
+  baseImageSrc: string; // Original placeholder
+  imageAlt: string;
+  imagePrompt: string; // Prompt for AI generation
+}
+
+const initialAppFeatures: AppFeature[] = [
+  {
+    icon: <Sparkles className="h-10 w-10 text-primary mb-4" />,
+    title: "AI Flashcard Generation",
+    description: "Instantly create flashcards from your notes or any topic. Let AI do the heavy lifting. Describe a concept, and watch Memora build your study materials efficiently.",
+    link: "/ai-generator",
+    linkLabel: "Try AI Generator",
+    baseImageSrc: "https://placehold.co/700x500.png",
+    imageAlt: "AI neural network abstractly generating flashcards from digital text streams",
+    imagePrompt: "Futuristic image of an AI neural network glowing and abstractly generating flashcards from streams of digital text. Dark theme with blue and purple highlights, digital aesthetic."
+  },
+  {
+    icon: <Edit3 className="h-10 w-10 text-primary mb-4" />,
+    title: "Custom Card Creation",
+    description: "Craft your own flashcards with rich text formatting using Markdown, embed images, and include code snippets for technical topics. Tailor your learning experience precisely.",
+    link: "/create",
+    linkLabel: "Create Your Cards",
+    baseImageSrc: "https://placehold.co/700x500.png",
+    imageAlt: "Modern interface showing markdown editor with live preview for flashcard creation",
+    imagePrompt: "Sleek, dark-themed UI of a modern markdown editor with a live preview pane for creating flashcards. Emphasize clarity and futuristic design elements, code snippets visible."
+  },
+  {
+    icon: <Brain className="h-10 w-10 text-primary mb-4" />,
+    title: "Spaced Repetition Learning",
+    description: "Master concepts effectively with the proven SM-2 algorithm. Memora intelligently schedules reviews at optimal intervals to maximize retention and build long-term memory.",
+    link: "/review",
+    linkLabel: "Start Reviewing",
+    baseImageSrc: "https://placehold.co/700x500.png",
+    imageAlt: "Abstract visualization of interconnected brain pathways strengthening over time",
+    imagePrompt: "Abstract visualization of interconnected brain pathways and neural connections. Glowing nodes and connections symbolize learning and memory reinforcement. Dark background with subtle cosmic or digital textures."
+  },
+  {
+    icon: <BarChart3 className="h-10 w-10 text-primary mb-4" />,
+    title: "Learning Analytics",
+    description: "Track your progress, visualize study habits, and identify areas for improvement with our insightful analytics. See your learning journey unfold through data-driven insights.",
+    link: "/analytics",
+    linkLabel: "View Analytics",
+    baseImageSrc: "https://placehold.co/700x500.png",
+    imageAlt: "Futuristic dashboard displaying various glowing charts and learning metrics",
+    imagePrompt: "Dynamic and futuristic dashboard UI displaying various glowing charts, graphs, and learning metrics. Holographic elements, data visualizations on a dark background with a high-tech feel."
+  }
+];
+
+const subFeatures = [
+  { icon: <Zap className="h-6 w-6 text-primary" />, label: "Intuitive Interface" },
+  { icon: <BookOpen className="h-6 w-6 text-primary" />, label: "Efficient Study" },
+  { icon: <PlusCircle className="h-6 w-6 text-primary" />, label: "Curated Decks" },
+  { icon: <BarChart3 className="h-6 w-6 text-primary" />, label: "Progress Tracking" },
+];
 
 export default function HomePage() {
+  const [featureImages, setFeatureImages] = useState<Record<string, string>>({});
+  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
 
-  const appFeatures = [
-    {
-      icon: <Sparkles className="h-10 w-10 text-primary mb-4" />,
-      title: "AI Flashcard Generation",
-      description: "Instantly create flashcards from your notes or any topic. Let AI do the heavy lifting. Describe a concept, and watch Memora build your study materials efficiently.",
-      link: "/ai-generator",
-      linkLabel: "Try AI Generator",
-      imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "AI neural network abstractly generating flashcards from digital text streams",
-      dataAiHint: "AI neural network" // More specific hint
-    },
-    {
-      icon: <Edit3 className="h-10 w-10 text-primary mb-4" />,
-      title: "Custom Card Creation",
-      description: "Craft your own flashcards with rich text formatting using Markdown, embed images, and include code snippets for technical topics. Tailor your learning experience precisely.",
-      link: "/create",
-      linkLabel: "Create Your Cards",
-      imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Modern interface showing markdown editor with live preview for flashcard creation",
-      dataAiHint: "markdown editor UI" // More specific hint
-    },
-    {
-      icon: <Brain className="h-10 w-10 text-primary mb-4" />,
-      title: "Spaced Repetition Learning",
-      description: "Master concepts effectively with the proven SM-2 algorithm. Memora intelligently schedules reviews at optimal intervals to maximize retention and build long-term memory.",
-      link: "/review",
-      linkLabel: "Start Reviewing",
-      imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Abstract visualization of interconnected brain pathways strengthening over time",
-      dataAiHint: "brain pathways abstract" // More specific hint
-    },
-    {
-      icon: <BarChart3 className="h-10 w-10 text-primary mb-4" />,
-      title: "Learning Analytics",
-      description: "Track your progress, visualize study habits, and identify areas for improvement with our insightful analytics. See your learning journey unfold through data-driven insights.",
-      link: "/analytics",
-      linkLabel: "View Analytics",
-      imageSrc: "https://placehold.co/700x500.png",
-      imageAlt: "Futuristic dashboard displaying various glowing charts and learning metrics",
-      dataAiHint: "dashboard futuristic charts" // Consistent hint
-    }
-  ];
+  useEffect(() => {
+    const fetchImages = async () => {
+      for (const feature of initialAppFeatures) {
+        setLoadingImages(prev => ({ ...prev, [feature.title]: true }));
+        try {
+          const input: GenerateFeatureImageInput = { prompt: feature.imagePrompt };
+          const result = await generateFeatureImage(input);
+          if (result.imageUrl) {
+            setFeatureImages(prev => ({ ...prev, [feature.title]: result.imageUrl }));
+          } else {
+             // Keep placeholder if generation fails or returns no URL
+            setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc }));
+          }
+        } catch (error) {
+          console.error(`Failed to generate image for ${feature.title}:`, error);
+          setFeatureImages(prev => ({ ...prev, [feature.title]: feature.baseImageSrc })); // Fallback to placeholder
+        } finally {
+          setLoadingImages(prev => ({ ...prev, [feature.title]: false }));
+        }
+      }
+    };
 
-  const subFeatures = [
-    { icon: <Zap className="h-6 w-6 text-primary" />, label: "Intuitive Interface" },
-    { icon: <BookOpen className="h-6 w-6 text-primary" />, label: "Efficient Study" },
-    { icon: <PlusCircle className="h-6 w-6 text-primary" />, label: "Curated Decks" },
-    { icon: <BarChart3 className="h-6 w-6 text-primary" />, label: "Progress Tracking" },
-  ];
+    fetchImages();
+  }, []);
 
 
   return (
@@ -86,21 +126,28 @@ export default function HomePage() {
       {/* Futuristic Features Section */}
       <section className="py-16 md:py-24 bg-slate-950 text-white">
         <div className="container mx-auto px-4 space-y-20 md:space-y-32">
-          {appFeatures.map((feature, index) => (
+          {initialAppFeatures.map((feature, index) => (
             <div 
               key={feature.title} 
               className={`flex flex-col md:items-center gap-10 md:gap-16 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
             >
               <div className="md:w-1/2 relative group">
                 <div className="absolute -inset-4 bg-primary/5 rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                <Image 
-                  src={feature.imageSrc} 
-                  alt={feature.imageAlt} 
-                  width={700} 
-                  height={500} 
-                  className="rounded-2xl shadow-2xl object-cover aspect-[7/5] relative z-10 border border-slate-700/50 group-hover:border-primary/30 transition-colors" 
-                  data-ai-hint={feature.dataAiHint}
-                />
+                <div className="relative w-full aspect-[7/5] rounded-2xl shadow-2xl border border-slate-700/50 group-hover:border-primary/30 transition-colors overflow-hidden bg-slate-800 flex items-center justify-center">
+                  {loadingImages[feature.title] && (
+                    <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                  )}
+                  {!loadingImages[feature.title] && (
+                    <Image 
+                      src={featureImages[feature.title] || feature.baseImageSrc} 
+                      alt={feature.imageAlt} 
+                      width={700} 
+                      height={500} 
+                      className="object-cover w-full h-full"
+                      unoptimized={featureImages[feature.title]?.startsWith('data:')} // Important for data URIs
+                    />
+                  )}
+                </div>
               </div>
               <div className="md:w-1/2">
                 <div className="flex items-start mb-5">
@@ -142,5 +189,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
