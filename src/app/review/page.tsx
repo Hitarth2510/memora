@@ -34,7 +34,7 @@ export default function ReviewPage() {
   
   const [availableDecks, setAvailableDecks] = useState<DeckInfo[]>([]);
   const [selectedDeck, setSelectedDeck] = useState<DeckInfo | null>(null);
-  const [cardsForReviewSession, setCardsForReviewSession] = useState<Flashcard[]>([]); // Renamed from dueCards
+  const [cardsForReviewSession, setCardsForReviewSession] = useState<Flashcard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionCompleted, setSessionCompleted] = useState(false);
@@ -61,7 +61,7 @@ export default function ReviewPage() {
     let cardsToReview: Flashcard[];
 
     if (reviewAll) {
-      const allFlashcardsCurrent = flashcards; // Capture the flashcards array from closure
+      const allFlashcardsCurrent = flashcards; 
       const currentDeckId = deck.id;
       console.log(`[ReviewPage] Re-reviewing deck ID: ${currentDeckId}, Name: ${deck.name}. Total flashcards in hook: ${allFlashcardsCurrent.length}`);
       const filteredCards = allFlashcardsCurrent.filter(fc => {
@@ -77,8 +77,7 @@ export default function ReviewPage() {
       const dateA = a.nextReviewDate ? new Date(a.nextReviewDate).getTime() : 0;
       const dateB = b.nextReviewDate ? new Date(b.nextReviewDate).getTime() : 0;
       
-      if (dateA === dateB) { // If dates are same (e.g. both 0 for new cards, or same future date)
-        // Try to sort by ID's timestamp part for chronological order of creation
+      if (dateA === dateB) { 
         const idPartA = a.id.split('-')[0];
         const idPartB = b.id.split('-')[0];
         const numA = parseInt(idPartA, 10);
@@ -87,9 +86,9 @@ export default function ReviewPage() {
         if (!isNaN(numA) && !isNaN(numB)) {
             return numA - numB;
         }
-        return a.id.localeCompare(b.id); // Fallback to full ID string comparison for any other case
+        return a.id.localeCompare(b.id); 
       }
-      return dateA - dateB; // Primary sort by next review date
+      return dateA - dateB; 
     });
 
     setCardsForReviewSession(cardsToReview);
@@ -142,11 +141,10 @@ export default function ReviewPage() {
         const earliestNextReviewTimestamp = Math.min(
           ...cardsInReviewedDeck
             .map(fc => {
-              // Ensure fc.nextReviewDate is a valid date before getTime()
-              const date = new Date(fc.nextReviewDate);
+              const date = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
               return !isNaN(date.getTime()) ? date.getTime() : Infinity;
             })
-            .filter(ts => ts !== Infinity) // Filter out any Infinity from invalid dates
+            .filter(ts => ts !== Infinity) 
         );
         
         if (earliestNextReviewTimestamp === Infinity) {
@@ -156,10 +154,9 @@ export default function ReviewPage() {
 
         const earliestNextReviewDate = new Date(earliestNextReviewTimestamp);
 
-        // Double check if the date is valid after creation
         if (isNaN(earliestNextReviewDate.getTime())) {
           console.error("Calculated earliestNextReviewDate is invalid. Timestamp was:", earliestNextReviewTimestamp);
-          setNextReviewMessage("Could not determine the next review time for this deck due to an issue with card data. Please check your cards or try again.");
+          setNextReviewMessage("Error calculating next review. Please check card data.");
           return;
         }
         
@@ -167,16 +164,15 @@ export default function ReviewPage() {
         const today = new Date();
         today.setHours(0,0,0,0); 
         
-        // Ensure comparison is date-only if that's the intent
         const reviewDayDateOnly = new Date(earliestNextReviewDate);
         reviewDayDateOnly.setHours(0,0,0,0);
 
-        if (reviewDayDateOnly < today) { // Card is overdue
-          message = `Some cards in this deck are overdue. The earliest is scheduled for ${format(earliestNextReviewDate, 'MMMM d, yyyy')}. Consider reviewing soon.`;
+        if (reviewDayDateOnly < today) { 
+          message = `Some cards in this deck are overdue. The earliest is scheduled for ${format(earliestNextReviewDate, 'MMMM d, yyyy')}. Review soon!`;
         } else if (isToday(earliestNextReviewDate)) {
-          message = "The earliest next review for this deck is later today. Great job keeping up!";
+          message = `The earliest next review for this deck is later today (${format(earliestNextReviewDate, 'p, MMMM d')}). Great job!`;
         } else if (isTomorrow(earliestNextReviewDate)) {
-          message = "Next review for this deck is tomorrow.";
+          message = `Next review for this deck is tomorrow (${format(earliestNextReviewDate, 'MMMM d')}).`;
         } else {
           const distance = formatDistanceToNowStrict(earliestNextReviewDate, { addSuffix: true });
           message = `Next review for this deck: ${distance} (on ${format(earliestNextReviewDate, 'MMMM d, yyyy')}).`;
@@ -197,12 +193,12 @@ export default function ReviewPage() {
     setSelectedDeck(null); 
     setSessionCompleted(false); 
     setNextReviewMessage(null); 
-    // loadAvailableDecks will be triggered by useEffect watching selectedDeck
+    loadAvailableDecks();
   };
 
   const handleReviewThisDeckAgain = () => {
     if (selectedDeck) {
-      startReviewSession(selectedDeck, true); // Review all cards in the deck
+      startReviewSession(selectedDeck, true); 
     }
   };
 
@@ -218,11 +214,10 @@ export default function ReviewPage() {
         description: `The deck "${deckToDelete.name}" has been removed.`,
       });
       setDeckToDelete(null);
-      // If the deleted deck was the selected one, clear selection
       if (selectedDeck && selectedDeck.id === deckToDelete.id) {
         setSelectedDeck(null); 
+        loadAvailableDecks(); // Reload available decks as current selection is gone
       } else {
-        // Otherwise, just reload available decks to reflect the change
         loadAvailableDecks();
       }
     }
@@ -249,15 +244,15 @@ export default function ReviewPage() {
               You don't have any flashcard decks yet, or no cards are due for review.
             </p>
             <div className="space-y-4 sm:space-y-0 sm:flex sm:flex-row sm:justify-center sm:space-x-4">
-              <Button size="lg" asChild className="w-full sm:w-auto">
+              <Button asChild className="w-full sm:w-auto">
                 <Link href="/create">Create Your First Deck</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/decks">Browse Preloaded Decks</Link>
               </Button>
             </div>
           </Card>
-          <Button size="lg" variant="ghost" asChild className="mt-8">
+          <Button variant="ghost" asChild className="mt-8">
               <Link href="/">Go Home</Link>
             </Button>
         </div>
@@ -300,7 +295,7 @@ export default function ReviewPage() {
                       size="icon" 
                       onClick={(e) => { e.stopPropagation(); handleDeleteDeck(deck);}}
                       aria-label={`Delete deck ${deck.name}`}
-                      className="h-10 w-10 sm:h-auto sm:w-auto sm:px-3 sm:py-6"
+                      className="h-10 w-10 sm:h-auto sm:w-auto sm:px-3 sm:py-6 flex-shrink-0" // Added flex-shrink-0
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -367,12 +362,12 @@ export default function ReviewPage() {
                   </AlertDescription>
               </Alert>
           )}
-          <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:gap-4 justify-center">
-              <Button size="lg" onClick={handleReviewThisDeckAgain} variant="secondary" className="w-full sm:w-auto">
+          <div className="flex flex-col items-center space-y-3 sm:flex-row sm:flex-wrap sm:justify-center sm:space-y-0 sm:gap-3">
+              <Button onClick={handleReviewThisDeckAgain} variant="secondary" className="w-full sm:w-auto">
                 <RotateCcw className="mr-2 h-5 w-5" /> Review This Deck Again
               </Button>
-              <Button size="lg" onClick={handleReviewAnotherDeck} className="w-full sm:w-auto">Review Another Deck</Button>
-              <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
+              <Button onClick={handleReviewAnotherDeck} className="w-full sm:w-auto">Review Another Deck</Button>
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/">Back to Dashboard</Link>
               </Button>
           </div>
@@ -390,12 +385,12 @@ export default function ReviewPage() {
             <p className="text-md sm:text-lg text-muted-foreground mb-8">
               You have no flashcards due for review in this deck right now.
             </p>
-            <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:gap-4 justify-center">
-              <Button size="lg" onClick={handleReviewThisDeckAgain} variant="secondary" className="w-full sm:w-auto">
+            <div className="flex flex-col items-center space-y-3 sm:flex-row sm:flex-wrap sm:justify-center sm:space-y-0 sm:gap-3">
+              <Button onClick={handleReviewThisDeckAgain} variant="secondary" className="w-full sm:w-auto">
                 <RotateCcw className="mr-2 h-5 w-5" /> Review This Deck Again
               </Button>
-              <Button size="lg" onClick={handleReviewAnotherDeck} className="w-full sm:w-auto">Review Another Deck</Button>
-              <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
+              <Button onClick={handleReviewAnotherDeck} className="w-full sm:w-auto">Review Another Deck</Button>
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/">Go Home</Link>
               </Button>
             </div>
@@ -440,5 +435,3 @@ export default function ReviewPage() {
     </div>
   );
 }
-
-    
