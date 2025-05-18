@@ -6,7 +6,7 @@ Memora is an AI-powered flashcard generation and spaced repetition platform desi
 
 ## 🚀 Live Demo
 
-_Coming soon! Stay tuned._
+(https://memoraa.vercel.app/)
 
 ---
 
