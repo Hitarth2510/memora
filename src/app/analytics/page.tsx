@@ -4,11 +4,35 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFlashcards } from '@/hooks/useFlashcards';
+import { useReviewStreak } from '@/hooks/useReviewStreak';
 import type { Flashcard } from '@/lib/types';
-import { BarChart as ChartIcon, Activity, Info } from 'lucide-react';
+import { BarChart as ChartIcon, Activity, Info, CalendarCheck2 } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ReviewHeatmapCalendar } from '@/components/ReviewHeatmapCalendar'; // Import the new component
+
+const parseDateString = (dateStr: string): Date | null => {
+  // Assuming dateStr is "Mon 'YY" e.g. "Jan '24" or "Dec '23"
+  const parts = dateStr.split(' ');
+  if (parts.length !== 2) return null;
+
+  const monthStr = parts[0];
+  const yearStr = parts[1].replace("'", "");
+  
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthIndex = monthNames.indexOf(monthStr);
+  if (monthIndex === -1) return null;
+
+  let year = parseInt(yearStr, 10);
+  if (isNaN(year)) return null;
+  
+  // Assuming years like '23', '24' are 2023, 2024
+  if (year < 100) year += 2000; 
+
+  return new Date(year, monthIndex, 1); // Day set to 1 for month sorting
+};
+
 
 const prepareChartData = (flashcards: Flashcard[]): { date: string; created: number }[] => {
   const countsByMonth: { [month: string]: number } = {};
@@ -24,13 +48,11 @@ const prepareChartData = (flashcards: Flashcard[]): { date: string; created: num
 
   const sortedData = Object.entries(countsByMonth)
     .map(([dateStr, created]) => {
-        const parts = dateStr.split(' ');
-        let year = parseInt(parts[1], 10);
-        if (year < 100) year += 2000; 
-        const monthIndex = new Date(Date.parse(parts[0] +" 1, 2000")).getMonth();
-        return { originalDateStr: dateStr, dateObj: new Date(year, monthIndex), created };
+        const dateObj = parseDateString(dateStr);
+        return { originalDateStr: dateStr, dateObj, created };
     })
-    .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())
+    .filter(item => item.dateObj !== null) // Filter out any unparseable dates
+    .sort((a, b) => (a.dateObj as Date).getTime() - (b.dateObj as Date).getTime())
     .map(item => ({ date: item.originalDateStr, created: item.created }));
     
   return sortedData;
@@ -46,14 +68,17 @@ const chartConfig = {
 
 
 export default function AnalyticsPage() {
-  const { flashcards, isLoaded } = useFlashcards();
+  const { flashcards, isLoaded: flashcardsLoaded } = useFlashcards();
+  const { reviewHistory, isStreakLoaded } = useReviewStreak();
   const [cardsCreatedData, setCardsCreatedData] = useState<{ date: string; created: number }[]>([]);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (flashcardsLoaded) {
       setCardsCreatedData(prepareChartData(flashcards));
     }
-  }, [flashcards, isLoaded]);
+  }, [flashcards, flashcardsLoaded]);
+
+  const isFullyLoaded = flashcardsLoaded && isStreakLoaded;
 
   return (
     <div className="space-y-8 text-foreground">
@@ -64,12 +89,12 @@ export default function AnalyticsPage() {
               Your Learning Analytics
             </CardTitle>
             <CardDescription>
-              Track your flashcard creation progress. More insights coming soon!
+              Track your flashcard creation and review progress.
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="shadow-lg bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center text-xl">
@@ -79,7 +104,7 @@ export default function AnalyticsPage() {
               <CardDescription>Number of new flashcards added per month.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoaded && cardsCreatedData.length > 0 ? (
+              {flashcardsLoaded && cardsCreatedData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={cardsCreatedData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted-foreground/30" />
@@ -114,20 +139,38 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               ) : (
                 <p className="text-muted-foreground text-center py-10">
-                  {isLoaded ? "No card creation data yet. Start creating flashcards!" : "Loading chart data..."}
+                  {flashcardsLoaded ? "No card creation data yet. Start creating flashcards!" : "Loading chart data..."}
                 </p>
               )}
             </CardContent>
           </Card>
           
-          <Alert variant="default" className="bg-muted text-muted-foreground border-border">
-            <Info className="h-4 w-4" />
-            <AlertTitle>More Analytics Coming Soon!</AlertTitle>
-            <AlertDescription>
-              We're working on adding more detailed insights like review heatmaps, retention curves, and deck-specific performance. Stay tuned!
-            </AlertDescription>
-          </Alert>
+          {/* Review Heatmap Calendar */}
+          {isFullyLoaded ? (
+            <ReviewHeatmapCalendar reviewDates={reviewHistory} />
+          ) : (
+            <Card className="shadow-lg bg-card text-card-foreground">
+              <CardHeader>
+                <CardTitle className="flex items-center text-xl">
+                  <CalendarCheck2 className="mr-2 h-6 w-6 text-primary" />
+                  Review Activity Heatmap
+                </CardTitle>
+                <CardDescription>Loading heatmap data...</CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center h-[300px]">
+                <p className="text-muted-foreground">Loading...</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
+        
+        <Alert variant="default" className="bg-muted text-muted-foreground border-border">
+          <Info className="h-4 w-4" />
+          <AlertTitle>More Analytics Coming Soon!</AlertTitle>
+          <AlertDescription>
+            We're working on adding more detailed insights like retention curves and deck-specific performance. Stay tuned!
+          </AlertDescription>
+        </Alert>
       </div>
   );
 }

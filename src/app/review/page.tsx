@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
-import { format, formatDistanceToNowStrict, isToday, isTomorrow } from 'date-fns';
+import { format, formatDistanceToNowStrict, isToday, isTomorrow, isValid } from 'date-fns';
 
 
 export default function ReviewPage() {
@@ -66,10 +66,9 @@ export default function ReviewPage() {
     setNextReviewMessage(null);
 
     let cardsToReview: Flashcard[];
+    const allFlashcardsCurrent = flashcards; // These are all flashcards from the hook
 
     if (reviewAll) {
-      // When reviewAll is true, get all cards for the selected deck
-      const allFlashcardsCurrent = flashcards; // These are all flashcards from the hook
       const currentDeckId = deck.id;
       console.log(`[ReviewPage] Re-reviewing deck ID: ${currentDeckId}, Name: ${deck.name}. Total flashcards in hook: ${allFlashcardsCurrent.length}`);
       
@@ -83,8 +82,8 @@ export default function ReviewPage() {
     
     // Sort cards: primarily by next review date, then by creation timestamp in ID, then by full ID
     cardsToReview.sort((a, b) => {
-      const dateA = a.nextReviewDate ? new Date(a.nextReviewDate).getTime() : 0;
-      const dateB = b.nextReviewDate ? new Date(b.nextReviewDate).getTime() : 0;
+      const dateA = a.nextReviewDate && isValid(new Date(a.nextReviewDate)) ? new Date(a.nextReviewDate).getTime() : 0;
+      const dateB = b.nextReviewDate && isValid(new Date(b.nextReviewDate)) ? new Date(b.nextReviewDate).getTime() : 0;
       
       if (dateA === dateB) { 
         const idPartA = a.id.split('-')[0];
@@ -92,7 +91,7 @@ export default function ReviewPage() {
         const numA = parseInt(idPartA, 10);
         const numB = parseInt(idPartB, 10);
 
-        if (!isNaN(numA) && !isNaN(numB)) {
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
             return numA - numB;
         }
         return a.id.localeCompare(b.id); 
@@ -142,28 +141,20 @@ export default function ReviewPage() {
       const cardsInReviewedDeck = flashcards.filter(fc => fc.deckId === selectedDeck.id);
       
       if (cardsInReviewedDeck.length > 0) {
-        const earliestNextReviewTimestamp = Math.min(
-          ...cardsInReviewedDeck
-            .map(fc => {
-              // Ensure fc.nextReviewDate is a Date object or a valid date string
-              const dateValue = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
-              return !isNaN(dateValue.getTime()) ? dateValue.getTime() : Infinity;
-            })
-            .filter(ts => ts !== Infinity) 
-        );
-        
-        if (earliestNextReviewTimestamp === Infinity) {
+        const validReviewTimestamps = cardsInReviewedDeck
+          .map(fc => {
+            const dateValue = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
+            return isValid(dateValue) ? dateValue.getTime() : Infinity;
+          })
+          .filter(ts => ts !== Infinity);
+
+        if (validReviewTimestamps.length === 0) {
            setNextReviewMessage("Could not determine the next review time for this deck. All cards might be new or have invalid dates.");
            return;
         }
-
+        
+        const earliestNextReviewTimestamp = Math.min(...validReviewTimestamps);
         const earliestNextReviewDate = new Date(earliestNextReviewTimestamp);
-
-        if (isNaN(earliestNextReviewDate.getTime())) {
-          console.error("Calculated earliestNextReviewDate is invalid. Timestamp was:", earliestNextReviewTimestamp);
-          setNextReviewMessage("Error calculating next review. Please check card data.");
-          return;
-        }
         
         let message = "";
         const today = new Date();
@@ -197,6 +188,7 @@ export default function ReviewPage() {
   const handleReviewAnotherDeck = () => {
     setSelectedDeck(null); 
     setSessionCompleted(false); 
+    setCardsForReviewSession([]); // Clear cards for review session explicitly
     setNextReviewMessage(null); 
     loadAvailableDecks();
   };
@@ -221,6 +213,7 @@ export default function ReviewPage() {
       setDeckToDelete(null);
       if (selectedDeck && selectedDeck.id === deckToDelete.id) {
         setSelectedDeck(null); 
+        setCardsForReviewSession([]); // Clear cards for review session
         loadAvailableDecks(); 
       } else {
         loadAvailableDecks();
@@ -367,7 +360,7 @@ export default function ReviewPage() {
                   </AlertDescription>
               </Alert>
           )}
-          <div className="flex flex-col items-center space-y-3 sm:flex-row sm:flex-wrap sm:justify-center sm:space-y-0 sm:gap-3">
+         <div className="flex flex-col items-center space-y-3 sm:flex-row sm:flex-wrap sm:justify-center sm:space-y-0 sm:gap-3">
               <Button onClick={handleReviewThisDeckAgain} variant="secondary" className="w-full sm:w-auto">
                 <RotateCcw className="mr-2 h-5 w-5" /> Review This Deck Again
               </Button>
@@ -417,7 +410,12 @@ export default function ReviewPage() {
         </CardHeader>
       </Card>
 
-      {currentCard ? (
+      {isLoading || !currentCard ? ( // Added isLoading check here
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-300px)]">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+            <p className="text-lg text-muted-foreground">Loading card...</p>
+        </div>
+      ) : (
         <>
           <FlashcardDisplay
             flashcard={currentCard}
@@ -431,13 +429,7 @@ export default function ReviewPage() {
             </div>
           )}
         </>
-      ) : (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-300px)]">
-            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-            <p className="text-lg text-muted-foreground">Loading card...</p>
-        </div>
       )}
     </div>
   );
 }
-

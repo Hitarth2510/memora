@@ -5,25 +5,43 @@ import { useState, useEffect, useCallback } from 'react';
 
 const STREAK_STORAGE_KEY = 'memoraReviewStreak';
 const LAST_REVIEW_DATE_KEY = 'memoraLastReviewDate';
+const REVIEW_HISTORY_KEY = 'memoraReviewHistory'; // For heatmap
+
+// Helper to get today's date as YYYY-MM-DD string
+const getTodayDateString = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+};
 
 export function useReviewStreak() {
   const [streak, setStreak] = useState(0);
   const [lastReviewDate, setLastReviewDate] = useState<Date | null>(null);
+  const [reviewHistory, setReviewHistory] = useState<string[]>([]); // Store YYYY-MM-DD strings
   const [isStreakLoaded, setIsStreakLoaded] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedStreak = localStorage.getItem(STREAK_STORAGE_KEY);
       const storedLastReviewDate = localStorage.getItem(LAST_REVIEW_DATE_KEY);
+      const storedReviewHistory = localStorage.getItem(REVIEW_HISTORY_KEY);
 
       let currentStreak = 0;
       let lastDate: Date | null = null;
+      let currentHistory: string[] = [];
 
       if (storedStreak) {
         currentStreak = parseInt(storedStreak, 10);
       }
       if (storedLastReviewDate) {
         lastDate = new Date(storedLastReviewDate);
+      }
+      if (storedReviewHistory) {
+        try {
+          currentHistory = JSON.parse(storedReviewHistory);
+        } catch (e) {
+          console.error("Failed to parse review history:", e);
+          currentHistory = [];
+        }
       }
 
       // Check if streak should be reset due to missed days
@@ -43,6 +61,7 @@ export function useReviewStreak() {
       
       setStreak(currentStreak);
       setLastReviewDate(lastDate);
+      setReviewHistory(currentHistory);
       setIsStreakLoaded(true);
     }
   }, []);
@@ -53,19 +72,26 @@ export function useReviewStreak() {
       if (lastReviewDate) {
         localStorage.setItem(LAST_REVIEW_DATE_KEY, lastReviewDate.toISOString());
       } else {
-        // If streak is 0 and no last review date, ensure it's cleared
         if (streak === 0) {
           localStorage.removeItem(LAST_REVIEW_DATE_KEY);
         }
       }
+      localStorage.setItem(REVIEW_HISTORY_KEY, JSON.stringify(reviewHistory));
     }
-  }, [streak, lastReviewDate, isStreakLoaded]);
+  }, [streak, lastReviewDate, reviewHistory, isStreakLoaded]);
 
   const recordReviewSession = useCallback(() => {
     if(!isStreakLoaded) return;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayDateString = getTodayDateString();
+
+    setReviewHistory(prevHistory => {
+      const newHistory = new Set(prevHistory);
+      newHistory.add(todayDateString);
+      return Array.from(newHistory);
+    });
 
     if (lastReviewDate) {
       const lastReviewDay = new Date(lastReviewDate);
@@ -75,26 +101,20 @@ export function useReviewStreak() {
       const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) {
-        // Reviewed today already, or multiple times on the same day after a break.
-        // If streak was 0 (meaning it was reset or first time), set to 1.
         if (streak === 0) {
           setStreak(1);
         }
-        // Otherwise, streak doesn't change for same-day reviews.
       } else if (diffDays === 1) {
         setStreak(s => s + 1);
-      } else { // diffDays > 1 (missed days) or diffDays < 0 (should not happen)
-        setStreak(1); // Reset to 1 for the new review day
+      } else { 
+        setStreak(1); 
       }
     } else {
-      // No last review date, so this is the first review or first after a long break
       setStreak(1); 
     }
     setLastReviewDate(today);
   }, [lastReviewDate, isStreakLoaded, streak]);
   
-  // Effect to check and reset streak if needed on component mount / load
-  // This was partially handled in the first useEffect, this ensures consistency.
   useEffect(() => {
     if (!isStreakLoaded) return;
 
@@ -109,14 +129,14 @@ export function useReviewStreak() {
       const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays > 1) {
-        if (streak !== 0) { // Only update if streak is not already 0
+        if (streak !== 0) { 
              setStreak(0); 
         }
       }
-    } else if (streak !== 0) { // No last review date, but streak is not 0 (e.g. manual clear of date but not streak)
+    } else if (streak !== 0) { 
         setStreak(0);
     }
   }, [isStreakLoaded, lastReviewDate, streak]);
 
-  return { streak, recordReviewSession, isStreakLoaded };
+  return { streak, recordReviewSession, isStreakLoaded, reviewHistory };
 }
