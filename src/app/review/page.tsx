@@ -46,23 +46,21 @@ export default function ReviewPage() {
 
   const loadAvailableDecks = useCallback(() => {
      if (flashcardsLoaded) {
-      setIsLoading(true); // Set loading true when starting to load decks
+      setIsLoading(true); 
       const decks = getDecksWithDueCards();
       setAvailableDecks(decks);
-      setIsLoading(false); // Set loading false after decks are loaded
+      setIsLoading(false); 
     }
   }, [flashcardsLoaded, getDecksWithDueCards]);
 
   useEffect(() => {
-    // Initial load of available decks when component mounts and flashcards are loaded
     if (flashcardsLoaded) {
       loadAvailableDecks();
     }
-  }, [flashcardsLoaded, loadAvailableDecks]); // Removed selectedDeck from dependency array
+  }, [flashcardsLoaded, loadAvailableDecks]);
 
   const startReviewSession = useCallback((deck: DeckInfo, reviewAll: boolean = false) => {
-    setIsLoading(true); // Set loading true at the start of the function
-    // Reset states for the new session first
+    setIsLoading(true); 
     setCurrentCardIndex(0);
     setIsFlipped(false);
     setSessionCompleted(false);
@@ -70,23 +68,22 @@ export default function ReviewPage() {
     setNextReviewMessage(null);
 
     let cardsToReview: Flashcard[];
-    const allFlashcardsCurrent = flashcards; // These are all flashcards from the hook
+    const allFlashcardsCurrent = flashcards; 
 
     if (reviewAll) {
       const currentDeckId = deck.id;
       console.log(`[ReviewPage] Re-reviewing deck ID: ${currentDeckId}, Name: ${deck.name}. Total flashcards in hook: ${allFlashcardsCurrent.length}`);
       console.log('[ReviewPage] All flashcards available in hook for re-review:', JSON.stringify(allFlashcardsCurrent.map(f => ({id: f.id, deckId: f.deckId, front: f.front.substring(0,10)}))));
+      console.log(`[ReviewPage] Filtering with deck.id: ${currentDeckId}`);
       
       const filteredCards = allFlashcardsCurrent.filter(fc => fc.deckId === currentDeckId);
       console.log(`[ReviewPage] Filtered ${filteredCards.length} cards for re-review of deck '${deck.name}'.`);
       cardsToReview = filteredCards;
     } else {
-      // Default behavior: get only due cards for the selected deck
       cardsToReview = getDueFlashcards(deck.id);
        console.log(`[ReviewPage] Reviewing due cards for deck ID: ${deck.id}, Name: ${deck.name}. Found ${cardsToReview.length} due cards.`);
     }
     
-    // Sort cards: primarily by next review date, then by creation timestamp in ID, then by full ID
     cardsToReview.sort((a, b) => {
       const dateA = a.nextReviewDate && isValid(new Date(a.nextReviewDate)) ? new Date(a.nextReviewDate).getTime() : 0;
       const dateB = b.nextReviewDate && isValid(new Date(b.nextReviewDate)) ? new Date(b.nextReviewDate).getTime() : 0;
@@ -106,13 +103,12 @@ export default function ReviewPage() {
     });
 
     setCardsForReviewSession(cardsToReview);
-    setIsLoading(false); // Set loading false after cards are prepared
+    setIsLoading(false); 
   }, [flashcards, getDueFlashcards]);
 
 
   useEffect(() => {
-    // This effect handles starting a review session when a deck is selected
-    if (selectedDeck && flashcardsLoaded) { // Ensure flashcards are loaded before starting
+    if (selectedDeck && flashcardsLoaded) { 
       startReviewSession(selectedDeck, false); 
     }
   }, [selectedDeck, flashcardsLoaded, startReviewSession]);
@@ -146,7 +142,6 @@ export default function ReviewPage() {
       if (cardsInReviewedDeck.length > 0) {
         const validReviewTimestamps = cardsInReviewedDeck
           .map(fc => {
-            // Ensure fc.nextReviewDate is a Date object or a string that can be parsed into one
             const dateValue = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
             return isValid(dateValue) ? dateValue.getTime() : Infinity;
           })
@@ -192,16 +187,15 @@ export default function ReviewPage() {
   const handleReviewAnotherDeck = () => {
     setSelectedDeck(null); 
     setSessionCompleted(false); 
-    setCardsForReviewSession([]); // Clear cards for review session explicitly
+    setCardsForReviewSession([]); 
     setNextReviewMessage(null); 
-    setIsLoading(true); // Set loading before calling loadAvailableDecks
+    setIsLoading(true); 
     loadAvailableDecks();
   };
 
   const handleReviewThisDeckAgain = () => {
     if (selectedDeck) {
-      // No need to set isLoading true here, startReviewSession will do it
-      startReviewSession(selectedDeck, true); // reviewAll is true here
+      startReviewSession(selectedDeck, true); 
     }
   };
 
@@ -219,15 +213,15 @@ export default function ReviewPage() {
       setDeckToDelete(null);
       if (selectedDeck && selectedDeck.id === deckToDelete.id) {
         setSelectedDeck(null); 
-        setCardsForReviewSession([]); // Clear cards for review session
+        setCardsForReviewSession([]); 
       }
-      setIsLoading(true); // Set loading before calling loadAvailableDecks
+      setIsLoading(true); 
       loadAvailableDecks(); 
     }
   };
 
 
-  if (isLoading && (!flashcardsLoaded || !selectedDeck)) { // Adjust loading condition
+  if (isLoading && (!flashcardsLoaded || !selectedDeck)) { 
     return (
       <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -379,7 +373,6 @@ export default function ReviewPage() {
     );
   }
 
-  // If no current card, but a deck is selected and not loading, and cards for review are empty
   if (!currentCard && selectedDeck && cardsForReviewSession.length === 0 && !isLoading && flashcardsLoaded) {
      return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -416,7 +409,7 @@ export default function ReviewPage() {
         </CardHeader>
       </Card>
 
-      {isLoading || !currentCard ? ( // Added isLoading check here
+      {isLoading || !currentCard ? ( 
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-300px)]">
             <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
             <p className="text-lg text-muted-foreground">Loading card...</p>
@@ -439,3 +432,4 @@ export default function ReviewPage() {
     </div>
   );
 }
+
