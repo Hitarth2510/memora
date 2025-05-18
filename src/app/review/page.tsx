@@ -38,7 +38,7 @@ export default function ReviewPage() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionCompleted, setSessionCompleted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [cardsReviewedThisSession, setCardsReviewedThisSession] = useState(0);
   const [deckToDelete, setDeckToDelete] = useState<DeckInfo | null>(null);
   const [nextReviewMessage, setNextReviewMessage] = useState<string | null>(null);
@@ -46,18 +46,22 @@ export default function ReviewPage() {
 
   const loadAvailableDecks = useCallback(() => {
      if (flashcardsLoaded) {
+      setIsLoading(true); // Set loading true when starting to load decks
       const decks = getDecksWithDueCards();
       setAvailableDecks(decks);
-      setIsLoading(false);
+      setIsLoading(false); // Set loading false after decks are loaded
     }
   }, [flashcardsLoaded, getDecksWithDueCards]);
 
   useEffect(() => {
-    loadAvailableDecks();
-  }, [loadAvailableDecks]);
+    // Initial load of available decks when component mounts and flashcards are loaded
+    if (flashcardsLoaded) {
+      loadAvailableDecks();
+    }
+  }, [flashcardsLoaded, loadAvailableDecks]); // Removed selectedDeck from dependency array
 
   const startReviewSession = useCallback((deck: DeckInfo, reviewAll: boolean = false) => {
-    setIsLoading(true);
+    setIsLoading(true); // Set loading true at the start of the function
     // Reset states for the new session first
     setCurrentCardIndex(0);
     setIsFlipped(false);
@@ -71,6 +75,7 @@ export default function ReviewPage() {
     if (reviewAll) {
       const currentDeckId = deck.id;
       console.log(`[ReviewPage] Re-reviewing deck ID: ${currentDeckId}, Name: ${deck.name}. Total flashcards in hook: ${allFlashcardsCurrent.length}`);
+      console.log('[ReviewPage] All flashcards available in hook for re-review:', JSON.stringify(allFlashcardsCurrent.map(f => ({id: f.id, deckId: f.deckId, front: f.front.substring(0,10)}))));
       
       const filteredCards = allFlashcardsCurrent.filter(fc => fc.deckId === currentDeckId);
       console.log(`[ReviewPage] Filtered ${filteredCards.length} cards for re-review of deck '${deck.name}'.`);
@@ -78,6 +83,7 @@ export default function ReviewPage() {
     } else {
       // Default behavior: get only due cards for the selected deck
       cardsToReview = getDueFlashcards(deck.id);
+       console.log(`[ReviewPage] Reviewing due cards for deck ID: ${deck.id}, Name: ${deck.name}. Found ${cardsToReview.length} due cards.`);
     }
     
     // Sort cards: primarily by next review date, then by creation timestamp in ID, then by full ID
@@ -100,19 +106,16 @@ export default function ReviewPage() {
     });
 
     setCardsForReviewSession(cardsToReview);
-    setIsLoading(false);
+    setIsLoading(false); // Set loading false after cards are prepared
   }, [flashcards, getDueFlashcards]);
 
 
   useEffect(() => {
-    if (selectedDeck) {
+    // This effect handles starting a review session when a deck is selected
+    if (selectedDeck && flashcardsLoaded) { // Ensure flashcards are loaded before starting
       startReviewSession(selectedDeck, false); 
-    } else {
-      if (flashcardsLoaded) {
-         loadAvailableDecks();
-      }
     }
-  }, [selectedDeck, flashcardsLoaded, loadAvailableDecks, startReviewSession]);
+  }, [selectedDeck, flashcardsLoaded, startReviewSession]);
 
 
   const currentCard = cardsForReviewSession[currentCardIndex];
@@ -143,6 +146,7 @@ export default function ReviewPage() {
       if (cardsInReviewedDeck.length > 0) {
         const validReviewTimestamps = cardsInReviewedDeck
           .map(fc => {
+            // Ensure fc.nextReviewDate is a Date object or a string that can be parsed into one
             const dateValue = fc.nextReviewDate instanceof Date ? fc.nextReviewDate : new Date(fc.nextReviewDate);
             return isValid(dateValue) ? dateValue.getTime() : Infinity;
           })
@@ -166,7 +170,7 @@ export default function ReviewPage() {
         if (reviewDayDateOnly < today) { 
           message = `Some cards in this deck are overdue. The earliest is scheduled for ${format(earliestNextReviewDate, 'MMMM d, yyyy')}. Review soon!`;
         } else if (isToday(earliestNextReviewDate)) {
-          message = `The earliest next review for this deck is later today (${format(earliestNextReviewDate, 'p, MMMM d')}). Great job!`;
+          message = `Next review for this deck is later today! (${format(earliestNextReviewDate, 'p, MMMM d')}). Great job!`;
         } else if (isTomorrow(earliestNextReviewDate)) {
           message = `Next review for this deck is tomorrow (${format(earliestNextReviewDate, 'MMMM d')}).`;
         } else {
@@ -190,11 +194,13 @@ export default function ReviewPage() {
     setSessionCompleted(false); 
     setCardsForReviewSession([]); // Clear cards for review session explicitly
     setNextReviewMessage(null); 
+    setIsLoading(true); // Set loading before calling loadAvailableDecks
     loadAvailableDecks();
   };
 
   const handleReviewThisDeckAgain = () => {
     if (selectedDeck) {
+      // No need to set isLoading true here, startReviewSession will do it
       startReviewSession(selectedDeck, true); // reviewAll is true here
     }
   };
@@ -214,15 +220,14 @@ export default function ReviewPage() {
       if (selectedDeck && selectedDeck.id === deckToDelete.id) {
         setSelectedDeck(null); 
         setCardsForReviewSession([]); // Clear cards for review session
-        loadAvailableDecks(); 
-      } else {
-        loadAvailableDecks();
       }
+      setIsLoading(true); // Set loading before calling loadAvailableDecks
+      loadAvailableDecks(); 
     }
   };
 
 
-  if (isLoading && !flashcardsLoaded) {
+  if (isLoading && (!flashcardsLoaded || !selectedDeck)) { // Adjust loading condition
     return (
       <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -316,7 +321,7 @@ export default function ReviewPage() {
               </div>
             )) : (
                 <p className="text-muted-foreground text-center py-4">
-                    {flashcardsLoaded ? "No decks found. Create some or add preloaded ones!" : "Loading available decks..."}
+                    {flashcardsLoaded && !isLoading ? "No decks found. Create some or add preloaded ones!" : "Loading available decks..."}
                 </p>
             )}
           </CardContent>
@@ -374,6 +379,7 @@ export default function ReviewPage() {
     );
   }
 
+  // If no current card, but a deck is selected and not loading, and cards for review are empty
   if (!currentCard && selectedDeck && cardsForReviewSession.length === 0 && !isLoading && flashcardsLoaded) {
      return (
       <div className="container mx-auto px-4 py-8 text-center">

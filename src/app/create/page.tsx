@@ -70,7 +70,7 @@ export default function CreateFlashcardPage() {
     setFrontImageUrl('');
     setBackImageUrl('');
     // Optionally reset deckName or keep it for the next card
-    // setDeckName(''); 
+    // setDeckName('');
   };
 
   const isValidHttpUrl = (string: string) => {
@@ -136,7 +136,7 @@ export default function CreateFlashcardPage() {
                 />
                 {frontImageUrl && isValidHttpUrl(frontImageUrl) && (
                   <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
-                    <Image src={frontImageUrl} alt="Front image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content" />
+                    <Image src={frontImageUrl} alt="Front image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content" unoptimized={true} />
                   </div>
                 )}
               </div>
@@ -166,7 +166,7 @@ export default function CreateFlashcardPage() {
                 />
                 {backImageUrl && isValidHttpUrl(backImageUrl) && (
                   <div className="mt-2 rounded-md overflow-hidden border border-border p-2">
-                    <Image src={backImageUrl} alt="Back image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content"/>
+                    <Image src={backImageUrl} alt="Back image preview" width={100} height={100} className="object-cover rounded" data-ai-hint="user uploaded content" unoptimized={true} />
                   </div>
                 )}
               </div>
