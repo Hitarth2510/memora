@@ -2,11 +2,11 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image'; // Keep for logo if needed, but not for features
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookOpen, PlusCircle, Sparkles, Brain, BarChart3, Edit3, Zap, Cpu, Layers, Palette, Users, TrendingUp } from 'lucide-react';
 
-interface CoreFeature {
+// Updated AppFeature interface: removed imageSrc and imageAlt
+interface AppFeature {
   icon: JSX.Element;
   title: string;
   description: string;
@@ -14,7 +14,8 @@ interface CoreFeature {
   linkLabel: string;
 }
 
-const coreFeaturesList: CoreFeature[] = [
+// Updated coreFeaturesList: removed imageSrc and imageAlt properties
+const coreFeaturesList: AppFeature[] = [
   {
     icon: <Sparkles className="h-8 w-8 text-primary" />,
     title: "AI Flashcard Generation",
@@ -39,7 +40,7 @@ const coreFeaturesList: CoreFeature[] = [
   {
     icon: <BarChart3 className="h-8 w-8 text-primary" />,
     title: "Learning Analytics",
-    description: "Track your progress, visualize study habits, and identify areas for improvement with insightful analytics.",
+    description: "Track your progress with an initial overview of flashcards created over time. More detailed analytics are on the way!",
     link: "/analytics",
     linkLabel: "View Analytics",
   },
@@ -68,7 +69,7 @@ const subFeaturesBar = [
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col w-full"> {/* Ensure this parent takes full width */}
+    <div className="flex flex-col w-full">
       {/* Hero Section */}
       <section className="relative flex flex-col items-center justify-center min-h-[calc(100vh-4.5rem)] text-center px-4 py-16 bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 text-white overflow-hidden w-full">
         <div className="absolute inset-0 opacity-[0.02] [background-image:radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:1.25rem_1.25rem] pointer-events-none"></div>
@@ -91,7 +92,7 @@ export default function HomePage() {
         </Button>
       </section>
 
-      {/* New Features Section - Grid Layout */}
+      {/* Features Section - Grid Layout */}
       <section className="py-16 md:py-24 bg-slate-950 text-white w-full">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 md:mb-16">
@@ -140,5 +141,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
