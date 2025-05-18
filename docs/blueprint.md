@@ -1,4 +1,4 @@
-# **App Name**: Memory Forge
+# **App Name**: Memora
 
 ## Core Features:
 
